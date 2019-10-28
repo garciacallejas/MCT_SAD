@@ -10,3 +10,13 @@ removeNiches<-function(alphas){
   new.alphas[1,2]=alphas[1,2]*rescale
   return(new.alphas)
 }
+
+removeFitness<-function(alphas){
+  num=sqrt(alphas[2,1]*alphas[2,2])
+  den=sqrt(alphas[1,1]*alphas[1,2])
+  rescale=num/den
+  new.alphas=alphas
+  new.alphas[2,1]=alphas[2,1]*rescale
+  new.alphas[1,2]=alphas[1,2]*rescale
+  return(new.alphas)
+}
