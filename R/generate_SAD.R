@@ -10,25 +10,28 @@
 library(cxr)
 library(tidyverse)
 source("R/removeNiches.R")
+source("R/model_abund_negbin.R")
 
-store.results <- T
+store.results <- F
 
 ##########################
-# which method are we using
-# optim.method <- "optim_NM"
-optim.method <- "optim_L-BFGS-B"
+# from which method are parameters obtained
+method <- "negbin"
+# method <- "bobyqa"
+
 ##########################
 # models to generate
 models <- c("complete", 
-            "no_niche", 
-            "no_fitness")
+            "no_niche" 
+            # "no_fitness"
+            )
 ##########################
 
 # abundances and vital rates
 abundances <- read.csv2(file = "../Caracoles/data/abundances.csv",header = T,stringsAsFactors = F)
 sp.list <- read.csv2(file = "../Caracoles/data/plant_species_traits.csv",header = T,stringsAsFactors = F)
 
-valid.sp <- sp.list$species.code[which(!is.na(sp.list$lambda) & !is.na(sp.list$germination.rate))]
+valid.sp <- sp.list$species.code[which(!is.na(sp.list$germination.rate))]
 
 abund.plot.year <- abundances %>% 
   filter(species %in% valid.sp) %>% 
@@ -36,18 +39,27 @@ abund.plot.year <- abundances %>%
   summarise(abund = sum(individuals))
 
 # germination and survival rates
-germ.rate.orig <- as.numeric(sp.list$germination.rate[match(sort(valid.sp),sp.list$species.code)])
-surv.rate.orig <- as.numeric(sp.list$seed.survival[match(sort(valid.sp),sp.list$species.code)])
+germ.rate.orig <- sp.list$germination.rate[match(sort(valid.sp),sp.list$species.code)]
+surv.rate.orig <- sp.list$seed.survival[match(sort(valid.sp),sp.list$species.code)]
 
 # model parameters
-alpha.orig <- read.csv2(file = paste("../Spatial_coexistence/results/cxr_alpha_plot_per_year_BH3_",optim.method,".csv",sep=""),header = T,stringsAsFactors = F)
-lambda.orig <- read.csv2(file = paste("../Spatial_coexistence/results/cxr_lambda_plot_per_year_BH3_",optim.method,".csv",sep=""),header = T,stringsAsFactors = F)
-
+if(method == "negbin"){
+  alpha.orig <- read.csv2(file = "../Spatial_coexistence/results/alpha_negbin_multilevel_heterogeneous_both_clean.csv",header = T,stringsAsFactors = F)
+  lambda.orig <- read.csv2(file = "../Spatial_coexistence/results/lambda_negbin_multilevel_heterogeneous_both_clean.csv",header = T,stringsAsFactors = F)
+  
+  # lambda should be in its original scale
+  lambda.orig$lambda <- log(lambda.orig$lambda)
+  
+  abundance.model <- model_abund_negbin
+}else{
+  alpha.orig <- read.csv2(file = paste("../Spatial_coexistence/results/cxr_alpha_plot_per_year_BH3_",optim.method,".csv",sep=""),header = T,stringsAsFactors = F)
+  lambda.orig <- read.csv2(file = paste("../Spatial_coexistence/results/cxr_lambda_plot_per_year_BH3_",optim.method,".csv",sep=""),header = T,stringsAsFactors = F)
+  abundance.model <- cxr::model_abundBH3
+}
 alpha.orig <- subset(alpha.orig,focal %in% valid.sp & competitor %in% valid.sp)
 lambda.orig <- subset(lambda.orig,sp %in% valid.sp)
 
 # initial values and params for abundance projection
-abundance.model <- cxr::model_abundBH3
 timesteps <- 2
 
 init.abund <- abund.plot.year[abund.plot.year$year == 2019,c("plot","species","abund")]
@@ -56,15 +68,16 @@ names(init.abund) <- c("site","species","abundance")
 ##########
 # stick with plot 1 for now
 # abundance
-init.abund <- subset(init.abund, site == 1)
+init.abund <- subset(init.abund, site == 2)
 
 # lambda
-lambda.orig <- subset(lambda.orig, year == 2019 & plot == 1)
+lambda.orig <- subset(lambda.orig, year == 2019 & plot == 2)
 
-# lambda for non-present species? for now, take the independent estimate
+# lambda for non-present species? 
+# TODO for now, zero
 absent.sp <- lambda.orig$sp[which(is.na(lambda.orig$lambda))]
-lambda.orig$lambda[which(is.na(lambda.orig$lambda))] <- sp.list$lambda[match(absent.sp,sp.list$species.code)]
-lambda.orig$lambda <- as.numeric(lambda.orig$lambda)
+lambda.orig$lambda[which(is.na(lambda.orig$lambda))] <- 0#sp.list$lambda[match(absent.sp,sp.list$species.code)]
+# lambda.orig$lambda <- as.numeric(lambda.orig$lambda)
 
 # alpha
 alpha.orig <- subset(alpha.orig,year == 2019 & plot == 1)
@@ -112,7 +125,7 @@ for(i.model in 1:length(models)){
   predicted.abundances <- PredictAbundances(par = par,
                                             timesteps = timesteps,
                                             abundance.model = abundance.model,
-                                            return.seeds = TRUE)
+                                            return.seeds = FALSE)
   # include a "model" column
   predicted.abundances$model <- models[i.model]
   
