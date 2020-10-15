@@ -1,44 +1,15 @@
 # plot rank-abundance curves
 library(tidyverse)
+library(colorblindr)
 
-abund.proj <- read.csv2("./results/projected_abundances_subplot.csv",header = TRUE,stringsAsFactors = FALSE)
-abund.obs <- read.csv2("../Caracoles/data/abundances.csv",header = TRUE,stringsAsFactors = FALSE)
+# from "extract_RAD_components.R"
+rank.all <- read.csv2("./results/rank_abundances_complete.csv",header = TRUE,stringsAsFactors = FALSE)
+rank.all$SAD.model <- factor(rank.all$SAD.model,levels = c("observed","niche_fitness","only.niche","only.fitness","increased.dispersal"))
 
-# generate rank-abundance data
-# 1 - observed
-rank.obs <- abund.obs %>%
-  filter(!is.na(individuals) &
-           individuals > 0) %>%
-  group_by(year,plot,species) %>%
-  summarise(mean.abund = mean(individuals)) %>%
-  group_by(year,plot) %>%
-  mutate(plot.abund = sum(mean.abund)) %>%
-  group_by(year,plot,species) %>%
-  summarise(rel.abund = mean.abund/plot.abund) %>%
-  mutate(sp.rank = rank(-rel.abund,ties.method = "first"))
+# TEST
+# rank.all <- subset(rank.all, SAD.model %in% c("niche_fitness","increased.dispersal"))
 
-rank.obs <- arrange(rank.obs,year,plot,desc(rel.abund))
-rank.obs$SAD.model <- "observed"
-names(rank.obs)[which(names(rank.obs) == "species")] <- "sp"
-# write.csv2(rank.obs,file = "./results/rank_abundances_observed.csv",row.names = FALSE)
-
-# 2 - projected
-rank.abundances <- abund.proj %>% 
-  filter(!is.na(individuals)) %>%
-  group_by(year,plot,SAD.model,sp) %>% 
-  summarise(mean.abund = mean(individuals)) %>%
-  group_by(year,plot,SAD.model) %>%
-  mutate(plot.abund = sum(mean.abund)) %>%
-  group_by(year,plot,SAD.model,sp) %>%
-  summarise(rel.abund = mean.abund/plot.abund) %>%
-  mutate(sp.rank = rank(-rel.abund,ties.method = "first"))
-
-rank.abundances <- arrange(rank.abundances,SAD.model,year,plot,desc(rel.abund))
-# write.csv2(rank.abundances,file = "./results/rank_abundances_predicted.csv",row.names = FALSE)
-
-# plot
-rank.all <- bind_rows(rank.obs,rank.abundances)
-my.palette <- c("gray60","#009E73","#E69F00","#D55E00")
+my.palette <- c("gray60","#009E73","#E69F00","#D55E00","darkblue")
 
 rad.plot <- ggplot(rank.all,aes(x = sp.rank,y = rel.abund, group = SAD.model)) +
   geom_line(aes(color = SAD.model), size = 1.1) +#(aes(linetype = site.ID)) +
@@ -48,7 +19,7 @@ rad.plot <- ggplot(rank.all,aes(x = sp.rank,y = rel.abund, group = SAD.model)) +
   # facet_grid(trophic.guild~connectance+richness,scales = "free")+
   # facet_grid(fct_rev(trophic.guild)~connectance+resource.distribution,scales = "free")+
   facet_grid(plot~year,scales = "free")+
-  scale_shape_manual(values = c(21,22,23,24))+
+  scale_shape_manual(values = c(21,22,23,24,25))+
   scale_color_manual(values = my.palette)+
   scale_fill_manual(values = my.palette)+
   # xlim(0,20)+
@@ -62,6 +33,73 @@ rad.plot <- ggplot(rank.all,aes(x = sp.rank,y = rel.abund, group = SAD.model)) +
 # rad.plot
 
 # ggsave(filename = paste("results/images/SAD_plot_year_negbin.pdf",sep=""),plot = rad.plot,device = cairo_pdf,width = 12,height = 12,dpi = 600)
+
+
+# abundances bar plot -----------------------------------------------------
+
+abund.clean <- abund.obs[,c("year","plot","subplot","species","individuals")]
+abund.clean$SAD.model <- "observed"
+names(abund.clean)[4] <- "sp"
+
+abund.all <- rbind(abund.clean,abund.proj)
+
+plot.abund <- abund.all %>% 
+  filter(!is.na(individuals)) %>%
+  group_by(year,plot,sp,SAD.model) %>%
+  summarise(sum.ind = sum(individuals))
+
+# plot.list <- list()
+
+years <- sort(unique(plot.abund$year))
+plots <- sort(unique(plot.abund$plot))
+
+for(i.year in 1:length(years)){
+  for(i.plot in 1:length(plots)){
+    my.abund <- subset(plot.abund,year == years[i.year] & plot == plots[i.plot])
+    
+    # only sp with observed + at least 3 predicted 
+    my.sp <- sort(unique(my.abund$sp))
+    to.remove <- NULL
+    for(i.sp in 1:length(my.sp)){
+      if(length(which(my.abund$sp == my.sp[i.sp])) <= 3){
+        to.remove <- c(my.sp[i.sp],to.remove)
+      }
+    }
+    
+    my.abund <- subset(my.abund,!(sp %in% to.remove))
+    
+    my.plot <- ggplot(my.abund,aes(x = sp,y = sum.ind)) + 
+      geom_col(aes(fill = SAD.model),position = position_dodge()) + 
+      # facet_grid(plot~year,scales = "free")+
+      xlab("") + ylab("abundance") +
+      theme_bw()+
+      scale_fill_manual(values = my.palette)+
+      # guides(fill = FALSE)+
+      theme(legend.title=element_blank())+
+      theme(legend.justification=c(.95,.95),legend.position=c(.95,.95))+
+      labs(x = NULL,
+           y = "abundance",
+           title = paste("year:",years[i.year],"plot:",plots[i.plot]))+
+      # theme(plot.title.position = "plot")+
+      theme(axis.text.x  = element_text(angle=90, vjust=0.5))+
+      NULL
+    
+    ggsave(filename = paste("results/images/projected_abundances_",years[i.year],"_",plots[i.plot],".pdf",sep=""),
+           plot = my.plot,device = cairo_pdf,width = 8,height = 4,dpi = 600)
+  }
+}
+
+# all together
+# bar.plot <- ggplot(plot.abund,aes(x = sp,y = sum.ind)) + 
+#   geom_col(aes(fill = SAD.model),position = position_dodge()) + 
+#   facet_grid(plot~year,scales = "free")+
+#   xlab("species rank") + ylab("relative abundance") +
+#   DGC::theme_Publication()+
+#   scale_fill_manual(values = my.palette)+
+#   theme(legend.title=element_blank())+
+#   theme(strip.background = element_blank())+
+#   NULL
+# bar.plot
 
 # are species ranks well predicted?
 # rank.obs.wide <- spread(rank.obs,key = SAD.model,value = sp.rank)

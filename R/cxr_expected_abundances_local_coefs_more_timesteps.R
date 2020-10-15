@@ -43,8 +43,7 @@ source("R/removeNiches.R")
 # load model
 # this is an Annual Plant model, 
 # using the Ricker model from Mayfield and Stouffer 2017
-# We constrain intraspecific alphas to be positive,
-# but interspecific ones can take any value
+# We constrain alphas to be positive,
 
 source("./R/AP_pm_alpha_pairwise_lambdacov_none_alphacov_none.R")
 source("./R/AP_project_alpha_pairwise_lambdacov_none_alphacov_none.R")
@@ -64,7 +63,7 @@ initial_values <- list(lambda = 10, alpha_intra = 0.01, alpha_inter = 0.01)
 lower_bounds <- list(lambda = 0, alpha_intra = 0, alpha_inter = 0)
 upper_bounds <- list(lambda = 1e3, alpha_intra = 1, alpha_inter = 1)
 
-timesteps <- 2
+timesteps <- 4
 
 # fit model ---------------------------------------------------------------
 
@@ -86,19 +85,24 @@ caracoles.fit <- cxr_pm_multifit(data = neigh.list,
 # project abundances ------------------------------------------------------
 # at the subplot level
 
+# TODO: bind together all models in a single loop
+
 years <- sort(unique(base.abund$year))
 plots <- sort(unique(base.abund$plot))
 subplots <- sort(unique(base.abund$subplot))
 
-nf.abund <- expand.grid(year = years,
+nf.abund <- expand.grid(base.year = years,
+                        predicted.year = years+1,
                         plot = plots,
                         subplot = subplots, 
                         sp = all.sp)
 nf.abund$individuals <- NA_real_
 nf.abund$SAD.model <- "niche_fitness"
 
+nf.abund <- subset(nf.abund,predicted.year > base.year & predicted.year < 2020)
+
 # niche + fitness diff
-for(i.year in 1:length(years)){
+for(i.year in 1:(length(years)-1)){
   for(i.plot in 1:length(plots)){
     for(i.sub in 1:length(subplots)){
       
@@ -131,15 +135,28 @@ for(i.year in 1:length(years)){
                                           alpha_form = alpha_form,
                                           lambda_cov_form = lambda_cov_form,
                                           alpha_cov_form = alpha_cov_form,
-                                          timesteps = timesteps,
+                                          timesteps = timesteps+1, # because t1 is the original
                                           initial_abundances = sp.abund)
+        predicted.years <- years[i.year]:(years[i.year]+timesteps)
+        row.names(sub.abund) <- predicted.years
+        
+        # since the first year on sub.abund is not actually a prediction,
+        # remove it from the predicted.years vector. 
+        # Remove years > 2020 as well
+        predicted.years <- predicted.years[predicted.years < 2020]
+        predicted.years <- predicted.years[predicted.years > years[i.year]]
         
         # match obtained abundances to the results dataframe
-        # abundance for the next year!
-        pos <- which(nf.abund$year == years[i.year+1] &
-                       nf.abund$plot == plots[i.plot] & 
-                       nf.abund$subplot == subplots[i.sub])
-        nf.abund$individuals[pos[which(nf.abund$sp[pos] %in% present.sp)]] <- sub.abund[nrow(sub.abund),]
+        for(i.pred in 1:length(predicted.years)){
+          
+          pos <- which(nf.abund$base.year == years[i.year] &
+                         nf.abund$plot == plots[i.plot] &
+                         nf.abund$subplot == subplots[i.sub] &
+                         nf.abund$predicted.year == predicted.years[i.pred])
+          nf.abund$individuals[pos[which(nf.abund$sp[pos] %in% present.sp)]] <- 
+          sub.abund[which(row.names(sub.abund) == predicted.years[i.pred]),]
+        }# for i.timestep
+        
       }# if >1 sp
     }# i.subplot
   }# i.plot

@@ -15,6 +15,10 @@ base.abund <- abund %>%
 # summarise(num = sum(individuals))
 # year.off <- 2019
 
+years <- sort(unique(base.abund$year))
+plots <- sort(unique(base.abund$plot))
+subplots <- sort(unique(base.abund$subplot))
+
 comp <- comp[,which(names(comp) %in% c("year","plot","subplot","focal","fruit","seed",sp.valid))]
 comp <- subset(comp, seed > 0)
 # comp <- subset(comp, year != year.off)
@@ -105,9 +109,7 @@ caracoles.fit <- cxr_pm_multifit(data = neigh.list,
 # project abundances ------------------------------------------------------
 # at the subplot level
 
-years <- sort(unique(base.abund$year))
-plots <- sort(unique(base.abund$plot))
-subplots <- sort(unique(base.abund$subplot))
+# niche + fitness diff ----------------------------------------------------
 
 nf.abund <- expand.grid(year = years,
                         plot = plots,
@@ -116,7 +118,6 @@ nf.abund <- expand.grid(year = years,
 nf.abund$individuals <- NA_real_
 nf.abund$SAD.model <- "niche_fitness"
 
-# niche + fitness diff
 for(i.year in 1:length(years)){
   for(i.plot in 1:length(plots)){
     for(i.sub in 1:length(subplots)){
@@ -184,7 +185,8 @@ for(i.year in 1:length(years)){
   }# i.plot
 }# i.year
 
-# only fitness diff
+
+# only fitness diff -------------------------------------------------------
 
 of.abund <- expand.grid(year = years,
                         plot = plots,
@@ -263,7 +265,8 @@ for(i.year in 1:length(years)){
   }# i.plot
 }# i.year
 
-# only niche diff
+
+# only niche diff ---------------------------------------------------------
 
 on.abund <- expand.grid(year = years,
                         plot = plots,
@@ -346,9 +349,109 @@ for(i.year in 1:length(years)){
   }# i.plot
 }# i.year
 
+# increased dispersal -----------------------------------------------------
+# relative to abundance in previous year
+
+# maximum relative increase in fecundity due to dispersal
+increase.rate <- 0.25
+
+disp.abund <- expand.grid(year = years,
+                          plot = plots,
+                          subplot = subplots, 
+                          sp = all.sp)
+disp.abund$individuals <- NA_real_
+disp.abund$SAD.model <- "increased.dispersal"
+
+for(i.year in 1:length(years)){
+  for(i.plot in 1:length(plots)){
+    for(i.sub in 1:length(subplots)){
+      
+      # species and parameters in this subplot
+      # 1 - abundance
+      present.abund <- base.abund$species[base.abund$year == years[i.year] &
+                                            base.abund$plot == plots[i.plot] &
+                                            base.abund$subplot == subplots[i.sub] &
+                                            base.abund$individuals > 0]
+      # 2 - focal
+      present.focal <- unique(comp$focal[comp$year == years[i.year] &
+                                           comp$plot == plots[i.plot] &
+                                           comp$subplot == subplots[i.sub]])
+      present.sp <- sort(unique(intersect(present.abund,present.focal)))
+      
+      if(length(present.sp)>1){
+        
+        # base fecundity
+        base.lambda <- caracoles.fit$lambda[present.sp]
+        
+        # previous abundance across all caracoles
+        prev.full.abund <- base.abund %>%
+          filter(year == years[i.year] & species %in% present.sp) %>%
+          group_by(species) %>%
+          summarise(sum.ind = sum(individuals))
+        
+        # the species with the highest abundance gets the maximum increase rate
+        max.sp <- prev.full.abund$species[which(prev.full.abund$sum.ind == max(prev.full.abund$sum.ind))] 
+        # from the maximum increase and previous abundance
+        # I can extract the rate of increase in lambda per unit of abundance
+        unit.increase <- (base.lambda[which(names(base.lambda) == max.sp)] * increase.rate)/prev.full.abund$sum.ind[prev.full.abund$species == max.sp]
+        
+        sp.lambda <- base.lambda + unit.increase * prev.full.abund$sum.ind
+        
+        sp.alpha <- caracoles.fit$alpha_matrix[present.sp,present.sp]
+        
+        # modify to nxn sp
+        # sp.alpha.f <- removeNiches_nsp(sp.alpha)
+        
+        sp.abund <- base.abund$individuals[base.abund$year == years[i.year] &
+                                             base.abund$plot == plots[i.plot] &
+                                             base.abund$subplot == subplots[i.sub] &
+                                             base.abund$species %in% present.sp]
+        names(sp.abund) <- present.sp
+        
+        # lambda_cov (named matrix with covariates in columns and taxa in rows)
+        lambda_cov <- as.matrix(caracoles.fit$lambda_cov)
+        lambda_cov <- matrix(lambda_cov[which(rownames(lambda_cov) %in% present.sp)],
+                             nrow = length(present.sp),
+                             dimnames = list(present.sp,"precipitation"))
+        
+        # alpha_cov (list of one element with a single alpha_cov value -- per species --)
+        alpha_cov_data <- caracoles.fit$alpha_cov[[1]]
+        alpha_cov_data <- alpha_cov_data[present.sp,present.sp]
+        # alpha_cov_data <- matrix(alpha_cov_data,
+        #                      nrow = length(present.sp),
+        #                      dimnames = list(present.sp,"precipitation"))
+        alpha_cov <- list(precipitation = alpha_cov_data)
+        
+        # covariates (matrix: covariates in columns, timesteps in rows)
+        covariates <- matrix(precip$prec[precip$hidrologic.year %in% c(as.numeric(years[i.year]),as.numeric(years[i.year])+1)],nrow = 2)
+        colnames(covariates) <- "precipitation"
+        
+        # project abundances
+        sub.abund <- abundance_projection(lambda = sp.lambda,
+                                          alpha_matrix = sp.alpha,
+                                          model_family = model_family,
+                                          alpha_form = alpha_form,
+                                          lambda_cov_form = lambda_cov_form,
+                                          alpha_cov_form = alpha_cov_form,
+                                          lambda_cov = lambda_cov,
+                                          alpha_cov = alpha_cov,
+                                          covariates = covariates,
+                                          timesteps = timesteps,
+                                          initial_abundances = sp.abund)
+        
+        # match obtained abundances to the results dataframe
+        pos <- which(disp.abund$year == years[i.year] &
+                       disp.abund$plot == plots[i.plot] & 
+                       disp.abund$subplot == subplots[i.sub])
+        disp.abund$individuals[pos[which(disp.abund$sp[pos] %in% present.sp)]] <- sub.abund[nrow(sub.abund),]
+      }# if >1 sp
+    }# i.subplot
+  }# i.plot
+}# i.year
+
 # save results ------------------------------------------------------------
 
-projected.abund <- dplyr::bind_rows(nf.abund,of.abund,on.abund)
+projected.abund <- dplyr::bind_rows(nf.abund,of.abund,on.abund,disp.abund)
 
 write.csv2(projected.abund,file = "./results/projected_abundances_subplot_precip.csv",row.names = FALSE)
 

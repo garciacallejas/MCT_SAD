@@ -135,8 +135,7 @@ for(i.year in 1:length(years)){
                                           initial_abundances = sp.abund)
         
         # match obtained abundances to the results dataframe
-        # abundance for the next year!
-        pos <- which(nf.abund$year == years[i.year+1] &
+        pos <- which(nf.abund$year == years[i.year] &
                        nf.abund$plot == plots[i.plot] & 
                        nf.abund$subplot == subplots[i.sub])
         nf.abund$individuals[pos[which(nf.abund$sp[pos] %in% present.sp)]] <- sub.abund[nrow(sub.abund),]
