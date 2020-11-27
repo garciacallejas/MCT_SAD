@@ -81,7 +81,7 @@ lambda.orig$lambda[which(is.na(lambda.orig$lambda))] <- 0#sp.list$lambda[match(a
 
 # alpha
 alpha.orig <- subset(alpha.orig,year == 2019 & plot == 1)
-alpha.orig.m <- tidyr::spread(alpha.orig,competitor,magnitude)
+alpha.orig.m <- tidyr::spread(alpha.orig,neighbour,magnitude)
 alpha.orig.mat <- as.matrix(alpha.orig.m[,4:ncol(alpha.orig.m)])
 rownames(alpha.orig.mat) <- alpha.orig.m$focal
 alpha.orig.mat[is.na(alpha.orig.mat)] <- 0
