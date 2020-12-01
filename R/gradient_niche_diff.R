@@ -16,18 +16,39 @@ gradient_niche_diff <- function(lambda = NULL, A, steps){
       
       muIntra=sqrt(pairm[1,1]*pairm[2,2])
       muInter=sqrt(pairm[2,1]*pairm[1,2])
-      rescale=muIntra/muInter
+      
+      # TODO: make sure of this
+      # original rescaling when any i,j = 0 is 0/NA
+      if(muInter != 0 & muIntra != 0){
+        rescale=muIntra/muInter
+      }else{
+        rescale = 0
+      }
+
       new.alphas=pairm
       
       # weighting term
       if(steps > 1){
-        w <- seq(from = 1/rescale,to = 1,length.out = steps)
+        if(rescale == 0){
+          # progressively set to 0
+          w <- seq(from = 1,to = 0,length.out = steps)
+          rescale.steps <- w
+        }else{
+          # progressively set to rescale
+          w <- seq(from = 1/rescale,to = 1,length.out = steps)
+          rescale.steps <- rescale*w
+        }
       }else{
         w <- 1
+        if(rescale == 0){
+          rescale.steps <- 0
+        }else{
+          rescale.steps <- rescale
+        }
       }
       
-      new.alphas[2,1]=pairm[2,1]*(rescale*w[i.step])
-      new.alphas[1,2]=pairm[1,2]*(rescale*w[i.step])
+      new.alphas[2,1]=pairm[2,1]*rescale.steps[i.step]
+      new.alphas[1,2]=pairm[1,2]*rescale.steps[i.step]
       
       nm[pairs[1,i.pair],pairs[2,i.pair]] <- new.alphas[pairs[1,i.pair],pairs[2,i.pair]]
       nm[pairs[2,i.pair],pairs[1,i.pair]] <- new.alphas[pairs[2,i.pair],pairs[1,i.pair]]
