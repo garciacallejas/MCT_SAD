@@ -23,7 +23,7 @@ plots <- 1:length(communities[[1]])
 types <- names(communities[[1]][[1]])
 steps <- length(communities[[1]][[1]][["nd"]][["alpha"]])
 
-metrics <- c("composition","abundance","evenness")
+metrics <- c("richness","abundance","evenness")
 
 # also, load the model
 source("./R/AP_pm_alpha_pairwise_lambdacov_none_alphacov_none.R")
@@ -74,7 +74,7 @@ for(i.year in 1:length(initial.years)){
                                                  timesteps = 2, # because t1 is the original
                                                  initial_abundances = sp.abund)
           projected.abund <- sub.abund[2,]
-          projected.composition <- sum(projected.abund > 0)
+          projected.richness <- sum(projected.abund > 0)
           projected.abundance <- sum(projected.abund)
           projected.evenness <- hill.diversity(projected.abund)
           
@@ -82,8 +82,8 @@ for(i.year in 1:length(initial.years)){
                          pert.sad$plot == plots[i.plot] & 
                          pert.sad$type == "obs" )
           
-          pert.sad$value[pos[which(pert.sad$metric[pos] == "composition")]] <- 
-            projected.composition
+          pert.sad$value[pos[which(pert.sad$metric[pos] == "richness")]] <- 
+            projected.richness
           pert.sad$value[pos[which(pert.sad$metric[pos] == "abundance")]] <- 
             projected.abundance
           pert.sad$value[pos[which(pert.sad$metric[pos] == "evenness")]] <- 
@@ -118,7 +118,7 @@ for(i.year in 1:length(initial.years)){
                                                    timesteps = 2, # because t1 is the original
                                                    initial_abundances = sp.abund)
             projected.abund <- sub.abund[2,]
-            projected.composition <- sum(projected.abund > 0)
+            projected.richness <- sum(projected.abund > 0)
             projected.abundance <- sum(projected.abund)
             projected.evenness <- hill.diversity(projected.abund)
             
@@ -127,8 +127,8 @@ for(i.year in 1:length(initial.years)){
                            pert.sad$type == types[i.type] &
                            pert.sad$intensity == i.step)
             
-            pert.sad$value[pos[which(pert.sad$metric[pos] == "composition")]] <- 
-              projected.composition
+            pert.sad$value[pos[which(pert.sad$metric[pos] == "richness")]] <- 
+              projected.richness
             pert.sad$value[pos[which(pert.sad$metric[pos] == "abundance")]] <- 
               projected.abundance
             pert.sad$value[pos[which(pert.sad$metric[pos] == "evenness")]] <- 
@@ -164,7 +164,7 @@ for(i.year in 1:length(initial.years)){
                                                    timesteps = 2, # because t1 is the original
                                                    initial_abundances = sp.abund)
             projected.abund <- sub.abund[2,]
-            projected.composition <- sum(projected.abund > 0)
+            projected.richness <- sum(projected.abund > 0)
             projected.abundance <- sum(projected.abund)
             projected.evenness <- hill.diversity(projected.abund)
             
@@ -173,8 +173,8 @@ for(i.year in 1:length(initial.years)){
                            pert.sad$type == types[i.type] &
                            pert.sad$intensity == i.step)
             
-            pert.sad$value[pos[which(pert.sad$metric[pos] == "composition")]] <- 
-              projected.composition
+            pert.sad$value[pos[which(pert.sad$metric[pos] == "richness")]] <- 
+              projected.richness
             pert.sad$value[pos[which(pert.sad$metric[pos] == "abundance")]] <- 
               projected.abundance
             pert.sad$value[pos[which(pert.sad$metric[pos] == "evenness")]] <- 
@@ -211,7 +211,7 @@ for(i.year in 1:length(initial.years)){
                                                    timesteps = 2, # because t1 is the original
                                                    initial_abundances = sp.abund)
             projected.abund <- sub.abund[2,]
-            projected.composition <- sum(projected.abund > 0)
+            projected.richness <- sum(projected.abund > 0)
             projected.abundance <- sum(projected.abund)
             projected.evenness <- hill.diversity(projected.abund)
             
@@ -220,8 +220,8 @@ for(i.year in 1:length(initial.years)){
                            pert.sad$type == types[i.type] &
                            pert.sad$intensity == i.step)
             
-            pert.sad$value[pos[which(pert.sad$metric[pos] == "composition")]] <- 
-              projected.composition
+            pert.sad$value[pos[which(pert.sad$metric[pos] == "richness")]] <- 
+              projected.richness
             pert.sad$value[pos[which(pert.sad$metric[pos] == "abundance")]] <- 
               projected.abundance
             pert.sad$value[pos[which(pert.sad$metric[pos] == "evenness")]] <- 
@@ -259,7 +259,7 @@ for(i.year in 1:length(initial.years)){
                                                    timesteps = 2, # because t1 is the original
                                                    initial_abundances = sp.abund)
             projected.abund <- sub.abund[2,]
-            projected.composition <- sum(projected.abund > 0)
+            projected.richness <- sum(projected.abund > 0)
             projected.abundance <- sum(projected.abund)
             projected.evenness <- hill.diversity(projected.abund)
             
@@ -268,8 +268,8 @@ for(i.year in 1:length(initial.years)){
                            pert.sad$type == types[i.type] &
                            pert.sad$intensity == i.step)
             
-            pert.sad$value[pos[which(pert.sad$metric[pos] == "composition")]] <- 
-              projected.composition
+            pert.sad$value[pos[which(pert.sad$metric[pos] == "richness")]] <- 
+              projected.richness
             pert.sad$value[pos[which(pert.sad$metric[pos] == "abundance")]] <- 
               projected.abundance
             pert.sad$value[pos[which(pert.sad$metric[pos] == "evenness")]] <- 
