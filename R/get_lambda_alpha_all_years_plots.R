@@ -17,7 +17,8 @@ base.abund <- abund %>%
 # summarise(num = sum(individuals))
 # year.off <- 2019
 
-comp <- comp[,which(names(comp) %in% c("year","plot","subplot","focal","fruit","seed",sp.valid))]
+comp <- comp[,which(names(comp) %in% c("year","plot","subplot",
+                                       "focal","fruit","seed",sp.valid))]
 comp <- subset(comp, seed > 0)
 # comp <- subset(comp, year != year.off)
 
@@ -91,6 +92,4 @@ alpha.matrix <- caracoles.fit$alpha_matrix
 
 write.csv2(sp.lambdas, file = "./results/lambda.csv",row.names = FALSE)
 write.csv2(alpha.matrix,file = "./results/alpha.csv")
-
-
 

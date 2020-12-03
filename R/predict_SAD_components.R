@@ -289,4 +289,3 @@ for(i.year in 1:length(initial.years)){
 write.csv2(pert.sad,file = "results/predicted_SAD_components.csv",
            row.names = FALSE)
 
-
