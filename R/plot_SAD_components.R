@@ -7,7 +7,7 @@ library(patchwork)
 
 obs <- read.csv2(file = "results/observed_SAD_components.csv",
                  stringsAsFactors = FALSE)
-pred <- read.csv2(file = "results/predicted_SAD_components.csv",
+pred <- read.csv2(file = "results/predicted_SAD_components_timesteps.csv",
                   stringsAsFactors = FALSE)
 
 # plot --------------------------------------------------------------------
@@ -24,7 +24,8 @@ pred.subset$type <- "projected"
 obs.pred <- bind_rows(obs.subset,pred.subset)
 
 obs.pred.plot <- ggplot(obs.pred, aes(x = type, y = value)) + 
-  geom_point(aes(fill = type), size = 1.5, shape = 21, position = position_jitterdodge()) +
+  geom_point(aes(fill = type), size = 1.5, shape = 21, 
+             position = position_jitterdodge()) +
   geom_boxplot(aes(fill = type),alpha = 0.60) +
   scale_fill_OkabeIto() +
   facet_grid(metric~.,scales = "free_y") +
@@ -33,7 +34,7 @@ obs.pred.plot <- ggplot(obs.pred, aes(x = type, y = value)) +
   scale_x_discrete(breaks=NULL)+
   theme(strip.background = element_blank())+
   NULL
-# obs.pred.plot
+ # obs.pred.plot
 
 # 2 - variation against standard predicted
 pred.wide <- pred %>% spread(key = "type", value = "value")

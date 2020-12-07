@@ -51,7 +51,11 @@ library(cxr)
 source("./R/AP_pm_alpha_pairwise_lambdacov_none_alphacov_none.R")
 source("./R/AP_project_alpha_pairwise_lambdacov_none_alphacov_none.R")
 
-model_family <- "AP"
+# TEST standard Ricker model
+# the AP model includes g,s, which are species-specific, 
+# and therefore would contribute to fitness diff. If I want 
+# to have complete control, I need a model only with lambda/alphas
+model_family <- "RK" #AP
 
 optimization_method <- "bobyqa"
 alpha_form <- "pairwise"
@@ -65,8 +69,6 @@ initial_values <- list(lambda = 10, alpha_intra = 0.01, alpha_inter = 0.01)
 # to remove niche diff, we need positive coefficients
 lower_bounds <- list(lambda = 0, alpha_intra = 0, alpha_inter = 0)
 upper_bounds <- list(lambda = 1e3, alpha_intra = 1, alpha_inter = 1)
-
-timesteps <- 4
 
 # fit model ---------------------------------------------------------------
 

@@ -9,6 +9,9 @@ load("results/communities.Rdata")
 
 # some constants ----------------------------------------------------------
 
+timesteps <- 200
+persistence.threshold <- 1e-6
+
 years <- names(communities)
 
 # all years are predicted except the first
@@ -36,10 +39,6 @@ lambda_cov_form <- "none"
 alpha_cov_form <- "none"
 
 # results data structure --------------------------------------------------
-
-obs.sad <- expand.grid(year.predicted = years.predicted,plot = plots,
-                       metric = metrics,type = c("observed"),
-                       value = NA)
 
 pert.sad <- expand.grid(year.predicted = years.predicted,plot = plots,
                         metric = metrics,type = types, intensity = 1:steps,
@@ -71,10 +70,10 @@ for(i.year in 1:length(initial.years)){
                                                  alpha_form = alpha_form,
                                                  lambda_cov_form = lambda_cov_form,
                                                  alpha_cov_form = alpha_cov_form,
-                                                 timesteps = 2, # because t1 is the original
+                                                 timesteps = timesteps,
                                                  initial_abundances = sp.abund)
-          projected.abund <- sub.abund[2,]
-          projected.richness <- sum(projected.abund > 0)
+          projected.abund <- sub.abund[timesteps,]
+          projected.richness <- sum(projected.abund > persistence.threshold)
           projected.abundance <- sum(projected.abund)
           projected.evenness <- hill.diversity(projected.abund)
           
@@ -115,10 +114,10 @@ for(i.year in 1:length(initial.years)){
                                                    alpha_form = alpha_form,
                                                    lambda_cov_form = lambda_cov_form,
                                                    alpha_cov_form = alpha_cov_form,
-                                                   timesteps = 2, # because t1 is the original
+                                                   timesteps = timesteps, # because t1 is the original
                                                    initial_abundances = sp.abund)
-            projected.abund <- sub.abund[2,]
-            projected.richness <- sum(projected.abund > 0)
+            projected.abund <- sub.abund[timesteps,]
+            projected.richness <- sum(projected.abund > persistence.threshold)
             projected.abundance <- sum(projected.abund)
             projected.evenness <- hill.diversity(projected.abund)
             
@@ -161,10 +160,10 @@ for(i.year in 1:length(initial.years)){
                                                    alpha_form = alpha_form,
                                                    lambda_cov_form = lambda_cov_form,
                                                    alpha_cov_form = alpha_cov_form,
-                                                   timesteps = 2, # because t1 is the original
+                                                   timesteps = timesteps, # because t1 is the original
                                                    initial_abundances = sp.abund)
-            projected.abund <- sub.abund[2,]
-            projected.richness <- sum(projected.abund > 0)
+            projected.abund <- sub.abund[timesteps,]
+            projected.richness <- sum(projected.abund > persistence.threshold)
             projected.abundance <- sum(projected.abund)
             projected.evenness <- hill.diversity(projected.abund)
             
@@ -208,10 +207,10 @@ for(i.year in 1:length(initial.years)){
                                                    alpha_form = alpha_form,
                                                    lambda_cov_form = lambda_cov_form,
                                                    alpha_cov_form = alpha_cov_form,
-                                                   timesteps = 2, # because t1 is the original
+                                                   timesteps = timesteps, # because t1 is the original
                                                    initial_abundances = sp.abund)
-            projected.abund <- sub.abund[2,]
-            projected.richness <- sum(projected.abund > 0)
+            projected.abund <- sub.abund[timesteps,]
+            projected.richness <- sum(projected.abund > persistence.threshold)
             projected.abundance <- sum(projected.abund)
             projected.evenness <- hill.diversity(projected.abund)
             
@@ -256,10 +255,10 @@ for(i.year in 1:length(initial.years)){
                                                    alpha_form = alpha_form,
                                                    lambda_cov_form = lambda_cov_form,
                                                    alpha_cov_form = alpha_cov_form,
-                                                   timesteps = 2, # because t1 is the original
+                                                   timesteps = timesteps, # because t1 is the original
                                                    initial_abundances = sp.abund)
-            projected.abund <- sub.abund[2,]
-            projected.richness <- sum(projected.abund > 0)
+            projected.abund <- sub.abund[timesteps,]
+            projected.richness <- sum(projected.abund > persistence.threshold)
             projected.abundance <- sum(projected.abund)
             projected.evenness <- hill.diversity(projected.abund)
             
@@ -286,6 +285,6 @@ for(i.year in 1:length(initial.years)){
 
 # store results -----------------------------------------------------------
 
-write.csv2(pert.sad,file = "results/predicted_SAD_components.csv",
+write.csv2(pert.sad,file = "results/predicted_SAD_components_timesteps.csv",
            row.names = FALSE)
 
