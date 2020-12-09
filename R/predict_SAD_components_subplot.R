@@ -9,7 +9,7 @@ load("results/communities_subplot.Rdata")
 
 # some constants ----------------------------------------------------------
 
-timesteps <- 200
+timesteps <- 2
 persistence.threshold <- 1e-3
 
 years <- names(communities)
@@ -33,7 +33,7 @@ metrics <- c("richness","abundance","evenness")
 source("./R/AP_pm_alpha_pairwise_lambdacov_none_alphacov_none.R")
 source("./R/AP_project_alpha_pairwise_lambdacov_none_alphacov_none.R")
 
-model_family <- "AP"
+model_family <- "RK"
 optimization_method <- "bobyqa"
 alpha_form <- "pairwise"
 lambda_cov_form <- "none"
@@ -240,6 +240,54 @@ for(i.year in 1:length(initial.years)){
         }# for i.step
         
       }else if(types[i.type] == "id"){
+        
+        for(i.step in 1:steps){
+          
+          lambda.df <- communities[[initial.years[i.year]]][[plots[i.plot]]][[subplots[i.sub]]][[types[i.type]]][["lambda"]]
+          if(sum(is.na(lambda.df)) == 0){
+            sp.alpha <- communities[[initial.years[i.year]]][[plots[i.plot]]][[subplots[i.sub]]][[types[i.type]]][["alpha"]][[i.step]]
+          }else{
+            sp.alpha <- NA
+          }
+          abund.df <- communities[[initial.years[i.year]]][[plots[i.plot]]][[subplots[i.sub]]][[types[i.type]]][["abundances"]]
+          
+          if(sum(sum(is.na(lambda.df)),sum(is.na(sp.alpha)),sum(is.na(abund.df))) == 0){
+            
+            sp.lambda <- lambda.df$lambda
+            names(sp.lambda) <- lambda.df$sp
+            
+            sp.abund <- abund.df$abundance
+            names(sp.abund) <- abund.df$species
+            
+            sub.abund <- cxr::abundance_projection(lambda = sp.lambda,
+                                                   alpha_matrix = sp.alpha,
+                                                   model_family = model_family,
+                                                   alpha_form = alpha_form,
+                                                   lambda_cov_form = lambda_cov_form,
+                                                   alpha_cov_form = alpha_cov_form,
+                                                   timesteps = timesteps, # because t1 is the original
+                                                   initial_abundances = sp.abund)
+            projected.abund <- sub.abund[timesteps,]
+            projected.richness <- sum(projected.abund > persistence.threshold)
+            projected.abundance <- sum(projected.abund)
+            projected.evenness <- hill.diversity(projected.abund)
+            
+            pos <- which(pert.sad$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
+                           pert.sad$plot == plots[i.plot] &
+                           pert.sad$subplot == subplots[i.sub] &
+                           pert.sad$type == types[i.type] &
+                           pert.sad$intensity == i.step)
+            
+            pert.sad$value[pos[which(pert.sad$metric[pos] == "richness")]] <- 
+              projected.richness
+            pert.sad$value[pos[which(pert.sad$metric[pos] == "abundance")]] <- 
+              projected.abundance
+            pert.sad$value[pos[which(pert.sad$metric[pos] == "evenness")]] <- 
+              projected.evenness
+          }# if !na
+        }# for i.step
+        
+      }else if(types[i.type] == "dd"){
         
         for(i.step in 1:steps){
           

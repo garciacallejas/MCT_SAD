@@ -7,6 +7,7 @@ source("R/gradient_asymmetry.R")
 source("R/gradient_fitness_diff.R")
 source("R/gradient_niche_diff.R")
 source("R/gradient_strength_dist.R")
+source("R/gradient_diag_dominance.R")
 
 # read data ---------------------------------------------------------------
 
@@ -36,7 +37,7 @@ subplots <- sort(unique(base.abund$subplot))
 
 steps <- 10
 
-types <- c("obs","nd","fd","ia","id")
+types <- c("obs","nd","fd","ia","id","dd")
 
 communities <- list()
 
@@ -146,6 +147,21 @@ for(i.year in 1:length(years)){
           
           if(length(present.sp)>1){
             alpha.id <- gradient_strength_dist(A = alpha.obs,steps = steps)
+            
+            communities[[i.year]][[i.plot]][[i.sub]][[i.type]][[1]] <- abund.obs
+            communities[[i.year]][[i.plot]][[i.sub]][[i.type]][[2]] <- lambda.obs
+            communities[[i.year]][[i.plot]][[i.sub]][[i.type]][[3]] <- alpha.id
+            
+          }else{
+            communities[[i.year]][[i.plot]][[i.sub]][[i.type]][[1]] <- NA
+            communities[[i.year]][[i.plot]][[i.sub]][[i.type]][[2]] <- NA
+            communities[[i.year]][[i.plot]][[i.sub]][[i.type]][[3]] <- NA
+          }
+          
+        }else if(types[i.type] == "dd"){
+          
+          if(length(present.sp)>1){
+            alpha.id <- gradient_diag_dominance(A = alpha.obs,steps = steps)
             
             communities[[i.year]][[i.plot]][[i.sub]][[i.type]][[1]] <- abund.obs
             communities[[i.year]][[i.plot]][[i.sub]][[i.type]][[2]] <- lambda.obs

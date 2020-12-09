@@ -8,18 +8,22 @@
 #'
 #' @examples hill.diversity(c(1,20,34,32,355,5))
 hill.diversity <- function(abundances,q = 1){
-  abundances <- abundances[abundances != 0]
-  abundances <- abundances/sum(abundances)
-  R <- length(abundances)
+  ab <- abundances[abundances != 0]
+  if(length(ab)>0){
+  ab <- ab/sum(ab)
+  R <- length(ab)
   # hill diversity is not defined for q = 1,
   # but its limit exists and equals
   # the exponential of shannon entropy 
   # (Jost 2006,2007,Tuomisto 2012)
   if(q == 1){
-    D <- exp(-sum(abundances*log(abundances)))
+    D <- exp(-sum(ab*log(ab)))
   }else{
-    mean.p <- (sum(abundances*abundances^(q-1)))^(1/(q-1))
+    mean.p <- (sum(ab*ab^(q-1)))^(1/(q-1))
     D <- 1/mean.p
+  }
+  }else{
+    D <- 0
   }
   return(D)
 }

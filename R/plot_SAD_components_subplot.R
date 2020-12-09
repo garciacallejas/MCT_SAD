@@ -46,11 +46,12 @@ pred.wide$delta.fd <- pred.wide$fd - pred.wide$obs
 pred.wide$delta.nd <- pred.wide$nd - pred.wide$obs
 pred.wide$delta.ia <- pred.wide$ia - pred.wide$obs
 pred.wide$delta.id <- pred.wide$id - pred.wide$obs
+pred.wide$delta.dd <- pred.wide$dd - pred.wide$obs
 
-pred.wide.delta <- pred.wide[,c("year.predicted","plot","subplot","metric","intensity","delta.fd","delta.nd","delta.ia","delta.id")]
-names(pred.wide.delta) <- c("year","plot","subplot","metric","intensity","fd","nd","ia","id")
+pred.wide.delta <- pred.wide[,c("year.predicted","plot","subplot","metric","intensity","delta.fd","delta.nd","delta.ia","delta.id","delta.dd")]
+names(pred.wide.delta) <- c("year","plot","subplot","metric","intensity","fd","nd","ia","id","dd")
 
-pred.delta <- pred.wide.delta %>% gather(key = "type", value = "value",fd:id)
+pred.delta <- pred.wide.delta %>% gather(key = "type", value = "value",fd:dd)
 
 pred.delta.avg <- pred.delta %>% group_by(metric, intensity, type) %>%
   summarise(mean.value = mean(value,na.rm = TRUE), 
