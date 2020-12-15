@@ -7,8 +7,10 @@ library(patchwork)
 
 obs <- read.csv2(file = "results/observed_SAD_components_subplot.csv",
                  stringsAsFactors = FALSE)
-pred <- read.csv2(file = "results/predicted_SAD_components_subplot_aggregated.csv",
+pred <- read.csv2(file = "results/predicted_SAD_components_subplot_aggregated_v2.csv",
                   stringsAsFactors = FALSE)
+
+pred <- subset(pred, timestep == 2)
 
 # plot --------------------------------------------------------------------
 # 1 - observed-predicted
@@ -18,9 +20,9 @@ obs.subset <- subset(obs, year > 2015)
 pred.subset <- subset(pred,type == "obs")
 pred.subset <- pred.subset %>% 
   filter(!is.na(value)) %>%
-  group_by(year.predicted,plot,subplot,metric) %>% 
+  group_by(year.predicted,plot,metric) %>% 
   summarise(mean.value = mean(value))
-names(pred.subset) <- c("year","plot","subplot","metric","value")
+names(pred.subset) <- c("year","plot","metric","value")
 pred.subset$type <- "projected"
 
 obs.pred <- bind_rows(obs.subset,pred.subset)
@@ -42,16 +44,21 @@ obs.pred.plot <- ggplot(obs.pred, aes(x = type, y = value)) +
 pred.wide <- pred %>% 
   filter(!is.na(value)) %>%
   spread(key = "type", value = "value")
-pred.wide$delta.fd <- pred.wide$fd - pred.wide$obs
-pred.wide$delta.nd <- pred.wide$nd - pred.wide$obs
+# pred.wide$delta.fd <- pred.wide$fd - pred.wide$obs
+# pred.wide$delta.nd <- pred.wide$nd - pred.wide$obs
 pred.wide$delta.ia <- pred.wide$ia - pred.wide$obs
 pred.wide$delta.id <- pred.wide$id - pred.wide$obs
 pred.wide$delta.dd <- pred.wide$dd - pred.wide$obs
 
-pred.wide.delta <- pred.wide[,c("year.predicted","plot","metric","intensity","delta.fd","delta.nd","delta.ia","delta.id","delta.dd")]
-names(pred.wide.delta) <- c("year","plot","metric","intensity","fd","nd","ia","id","dd")
+pred.wide.delta <- pred.wide[,c("year.predicted","plot","metric","intensity",
+                                # "delta.fd",
+                                # "delta.nd",
+                                "delta.ia","delta.id","delta.dd")]
+names(pred.wide.delta) <- c("year","plot","metric","intensity",
+                            # "fd","nd",
+                            "ia","id","dd")
 
-pred.delta <- pred.wide.delta %>% gather(key = "type", value = "value",fd:dd)
+pred.delta <- pred.wide.delta %>% gather(key = "type", value = "value",ia:dd)
 
 pred.delta.avg <- pred.delta %>% group_by(metric, intensity, type) %>%
   summarise(mean.value = mean(value,na.rm = TRUE), 

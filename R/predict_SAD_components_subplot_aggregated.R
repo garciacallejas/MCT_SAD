@@ -12,7 +12,7 @@ lambda.orig <- read.csv2("results/lambda.csv",stringsAsFactors = FALSE)
 
 # some constants ----------------------------------------------------------
 
-timesteps <- 2
+timesteps <- 20
 persistence.threshold <- 1e-3
 
 years <- names(communities)
@@ -27,7 +27,10 @@ initial.years <- years[1:(length(years)-1)]
 
 species <- sort(unique(lambda.orig$sp))
 plots <- 1:length(communities[[1]])
-types <- names(communities[[1]][[1]][[1]])
+
+# types <- names(communities[[1]][[1]][[1]])
+types <- c("obs","ia","id","dd")
+
 subplots <- names(communities[[1]][[1]])
 steps <- length(communities[[1]][[1]][[1]][["nd"]][["alpha"]])
 
@@ -46,26 +49,29 @@ alpha_cov_form <- "none"
 # results data structures -------------------------------------------------
 
 # predicted abundance of each sp at the plot level
-pred.plot <- expand.grid(year.predicted = years.predicted,
-                         plot = plots,
-                         type = types, 
-                         intensity = 1:steps,
-                         species = species,
-                         abund = 0)
+# pred.plot <- expand.grid(year.predicted = years.predicted,
+#                          plot = plots,
+#                          type = types, 
+#                          intensity = 1:steps,
+#                          timesteps = 1:timesteps,
+#                          species = species,
+#                          abund = 0)
 
-# aggregated metrics
-pert.sad <- expand.grid(year.predicted = years.predicted,
-                        plot = plots,
-                        metric = metrics,
-                        type = types, 
-                        intensity = 1:steps,
-                        value = NA_real_)
+# list keeping the metrics for each plot/year
+all.plots.list <- list()
+# count <- 1
+timesteps.to.keep <- c(2,5,10,15,20)
 
 # project abundances for every community ----------------------------------
 # and store them at the plot level
 
 for(i.year in 1:length(initial.years)){
   for(i.plot in 1:length(plots)){
+    
+    # list keeping all raw abundance projections
+    plot.list <- list()
+    count <- 1
+    
     for(i.sub in 1:length(subplots)){
     for(i.type in 1:length(types)){
       
@@ -92,38 +98,24 @@ for(i.year in 1:length(initial.years)){
                                                  timesteps = timesteps,
                                                  initial_abundances = sp.abund)
           
-          # pos <- which(pred.plot$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
-          #                pred.plot$plot == plots[i.plot] &
-          #                pred.plot$type == "obs" &
-          #                pred.plot$species %in% names(sub.abund[timesteps,]))
+          sub.abund.df <- as.data.frame(sub.abund)
+          sub.abund.df$year.predicted <- (as.numeric(initial.years[i.year]) + 1)
+          sub.abund.df$plot <- plots[i.plot]
+          sub.abund.df$type <- types[i.type]
+          sub.abund.df$timestep <- 1:nrow(sub.abund.df)
           
-          for(i.sp in 1:length(species)){
-            if(species[i.sp] %in% names(sub.abund[timesteps,])){
-              pos.sp <- which(pred.plot$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
-                                pred.plot$plot == plots[i.plot] &
-                                pred.plot$type == "obs" &
-                                pred.plot$species == species[i.sp])
-              pred.plot$abund[pos.sp] <- pred.plot$abund[pos.sp] + 
-                sub.abund[timesteps,which(names(sub.abund[timesteps,]) == species[i.sp])]
-            }
+          sub.abund.df <- pivot_longer(sub.abund.df,1:ncol(sub.abund),
+                                       names_to = "species",
+                                       values_to = "abund")
+          
+          for(i.int in 1:steps){
+            sub.abund.df$intensity <- i.int
+            sub.abund.df <- sub.abund.df[,c("year.predicted","plot","type",
+                                            "intensity","timestep","species","abund")]
+            plot.list[[count]] <- sub.abund.df
+            count <- count + 1
           }
           
-          # projected.abund <- sub.abund[timesteps,]
-          # projected.richness <- sum(projected.abund > persistence.threshold)
-          # projected.abundance <- sum(projected.abund)
-          # projected.evenness <- hill.diversity(projected.abund)
-          # 
-          # pos <- which(pert.sad$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
-          #                pert.sad$plot == plots[i.plot] &
-          #                pert.sad$subplot == subplots[i.sub] &
-          #                pert.sad$type == "obs" )
-          # 
-          # pert.sad$value[pos[which(pert.sad$metric[pos] == "richness")]] <- 
-          #   projected.richness
-          # pert.sad$value[pos[which(pert.sad$metric[pos] == "abundance")]] <- 
-          #   projected.abundance
-          # pert.sad$value[pos[which(pert.sad$metric[pos] == "evenness")]] <- 
-          #   projected.evenness
         }# if !na
       }else if(types[i.type] == "nd"){
         
@@ -153,38 +145,23 @@ for(i.year in 1:length(initial.years)){
                                                    alpha_cov_form = alpha_cov_form,
                                                    timesteps = timesteps, # because t1 is the original
                                                    initial_abundances = sp.abund)
+            sub.abund.df <- as.data.frame(sub.abund)
+            sub.abund.df$year.predicted <- (as.numeric(initial.years[i.year]) + 1)
+            sub.abund.df$plot <- plots[i.plot]
+            sub.abund.df$type <- types[i.type]
+            sub.abund.df$intensity <- i.step
+            sub.abund.df$timestep <- 1:nrow(sub.abund.df)
             
-            for(i.sp in 1:length(species)){
-              if(species[i.sp] %in% names(sub.abund[timesteps,])){
-                pos.sp <- which(pred.plot$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
-                                  pred.plot$plot == plots[i.plot] &
-                                  pred.plot$type == types[i.type] &
-                                  pred.plot$intensity == i.step &
-                                  pred.plot$species == species[i.sp])
-                pred.plot$abund[pos.sp] <- pred.plot$abund[pos.sp] + 
-                  sub.abund[timesteps,which(names(sub.abund[timesteps,]) == species[i.sp])]
-              }
-            }
+            sub.abund.df <- pivot_longer(sub.abund.df,1:ncol(sub.abund),
+                                         names_to = "species",
+                                         values_to = "abund")
             
-            # projected.abund <- sub.abund[timesteps,]
-            # projected.richness <- sum(projected.abund > persistence.threshold)
-            # projected.abundance <- sum(projected.abund)
-            # projected.evenness <- hill.diversity(projected.abund)
-            # 
-            # pos <- which(pert.sad$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
-            #                pert.sad$plot == plots[i.plot] &
-            #                pert.sad$subplot == subplots[i.sub] &
-            #                pert.sad$type == types[i.type] &
-            #                pert.sad$intensity == i.step)
-            # 
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "richness")]] <- 
-            #   projected.richness
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "abundance")]] <- 
-            #   projected.abundance
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "evenness")]] <- 
-            #   projected.evenness
+            plot.list[[count]] <- sub.abund.df
+            count <- count + 1
+            
           }# if !na
         }# for i.step
+        
       }else if(types[i.type] == "fd"){
         
         for(i.step in 1:steps){
@@ -213,36 +190,20 @@ for(i.year in 1:length(initial.years)){
                                                    alpha_cov_form = alpha_cov_form,
                                                    timesteps = timesteps, # because t1 is the original
                                                    initial_abundances = sp.abund)
+            sub.abund.df <- as.data.frame(sub.abund)
+            sub.abund.df$year.predicted <- (as.numeric(initial.years[i.year]) + 1)
+            sub.abund.df$plot <- plots[i.plot]
+            sub.abund.df$type <- types[i.type]
+            sub.abund.df$intensity <- i.step
+            sub.abund.df$timestep <- 1:nrow(sub.abund.df)
             
-            for(i.sp in 1:length(species)){
-              if(species[i.sp] %in% names(sub.abund[timesteps,])){
-                pos.sp <- which(pred.plot$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
-                                  pred.plot$plot == plots[i.plot] &
-                                  pred.plot$type == types[i.type] &
-                                  pred.plot$intensity == i.step &
-                                  pred.plot$species == species[i.sp])
-                pred.plot$abund[pos.sp] <- pred.plot$abund[pos.sp] + 
-                  sub.abund[timesteps,which(names(sub.abund[timesteps,]) == species[i.sp])]
-              }
-            }
+            sub.abund.df <- pivot_longer(sub.abund.df,1:ncol(sub.abund),
+                                         names_to = "species",
+                                         values_to = "abund")
             
-            # projected.abund <- sub.abund[timesteps,]
-            # projected.richness <- sum(projected.abund > persistence.threshold)
-            # projected.abundance <- sum(projected.abund)
-            # projected.evenness <- hill.diversity(projected.abund)
-            # 
-            # pos <- which(pert.sad$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
-            #                pert.sad$plot == plots[i.plot] &
-            #                pert.sad$subplot == subplots[i.sub] &
-            #                pert.sad$type == types[i.type] &
-            #                pert.sad$intensity == i.step)
-            # 
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "richness")]] <- 
-            #   projected.richness
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "abundance")]] <- 
-            #   projected.abundance
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "evenness")]] <- 
-            #   projected.evenness
+            plot.list[[count]] <- sub.abund.df
+            count <- count + 1
+            
           }# if !na
         }# for i.step
         
@@ -274,35 +235,20 @@ for(i.year in 1:length(initial.years)){
                                                    alpha_cov_form = alpha_cov_form,
                                                    timesteps = timesteps, # because t1 is the original
                                                    initial_abundances = sp.abund)
-            for(i.sp in 1:length(species)){
-              if(species[i.sp] %in% names(sub.abund[timesteps,])){
-                pos.sp <- which(pred.plot$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
-                                  pred.plot$plot == plots[i.plot] &
-                                  pred.plot$type == types[i.type] &
-                                  pred.plot$intensity == i.step &
-                                  pred.plot$species == species[i.sp])
-                pred.plot$abund[pos.sp] <- pred.plot$abund[pos.sp] + 
-                  sub.abund[timesteps,which(names(sub.abund[timesteps,]) == species[i.sp])]
-              }
-            }
             
-            # projected.abund <- sub.abund[timesteps,]
-            # projected.richness <- sum(projected.abund > persistence.threshold)
-            # projected.abundance <- sum(projected.abund)
-            # projected.evenness <- hill.diversity(projected.abund)
-            # 
-            # pos <- which(pert.sad$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
-            #                pert.sad$plot == plots[i.plot] &
-            #                pert.sad$subplot == subplots[i.sub] &
-            #                pert.sad$type == types[i.type] &
-            #                pert.sad$intensity == i.step)
-            # 
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "richness")]] <- 
-            #   projected.richness
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "abundance")]] <- 
-            #   projected.abundance
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "evenness")]] <- 
-            #   projected.evenness
+            sub.abund.df <- as.data.frame(sub.abund)
+            sub.abund.df$year.predicted <- (as.numeric(initial.years[i.year]) + 1)
+            sub.abund.df$plot <- plots[i.plot]
+            sub.abund.df$type <- types[i.type]
+            sub.abund.df$intensity <- i.step
+            sub.abund.df$timestep <- 1:nrow(sub.abund.df)
+            
+            sub.abund.df <- pivot_longer(sub.abund.df,1:ncol(sub.abund),
+                                         names_to = "species",
+                                         values_to = "abund")
+            
+            plot.list[[count]] <- sub.abund.df
+            count <- count + 1
             
           }# if !na
         }# for i.step
@@ -336,35 +282,20 @@ for(i.year in 1:length(initial.years)){
                                                    timesteps = timesteps, # because t1 is the original
                                                    initial_abundances = sp.abund)
             
-            for(i.sp in 1:length(species)){
-              if(species[i.sp] %in% names(sub.abund[timesteps,])){
-                pos.sp <- which(pred.plot$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
-                                  pred.plot$plot == plots[i.plot] &
-                                  pred.plot$type == types[i.type] &
-                                  pred.plot$intensity == i.step &
-                                  pred.plot$species == species[i.sp])
-                pred.plot$abund[pos.sp] <- pred.plot$abund[pos.sp] + 
-                  sub.abund[timesteps,which(names(sub.abund[timesteps,]) == species[i.sp])]
-              }
-            }
+            sub.abund.df <- as.data.frame(sub.abund)
+            sub.abund.df$year.predicted <- (as.numeric(initial.years[i.year]) + 1)
+            sub.abund.df$plot <- plots[i.plot]
+            sub.abund.df$type <- types[i.type]
+            sub.abund.df$intensity <- i.step
+            sub.abund.df$timestep <- 1:nrow(sub.abund.df)
             
-            # projected.abund <- sub.abund[timesteps,]
-            # projected.richness <- sum(projected.abund > persistence.threshold)
-            # projected.abundance <- sum(projected.abund)
-            # projected.evenness <- hill.diversity(projected.abund)
-            # 
-            # pos <- which(pert.sad$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
-            #                pert.sad$plot == plots[i.plot] &
-            #                pert.sad$subplot == subplots[i.sub] &
-            #                pert.sad$type == types[i.type] &
-            #                pert.sad$intensity == i.step)
-            # 
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "richness")]] <- 
-            #   projected.richness
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "abundance")]] <- 
-            #   projected.abundance
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "evenness")]] <- 
-            #   projected.evenness
+            sub.abund.df <- pivot_longer(sub.abund.df,1:ncol(sub.abund),
+                                         names_to = "species",
+                                         values_to = "abund")
+            
+            plot.list[[count]] <- sub.abund.df
+            count <- count + 1
+            
           }# if !na
         }# for i.step
         
@@ -397,35 +328,20 @@ for(i.year in 1:length(initial.years)){
                                                    timesteps = timesteps, # because t1 is the original
                                                    initial_abundances = sp.abund)
             
-            for(i.sp in 1:length(species)){
-              if(species[i.sp] %in% names(sub.abund[timesteps,])){
-                pos.sp <- which(pred.plot$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
-                                  pred.plot$plot == plots[i.plot] &
-                                  pred.plot$type == types[i.type] &
-                                  pred.plot$intensity == i.step &
-                                  pred.plot$species == species[i.sp])
-                pred.plot$abund[pos.sp] <- pred.plot$abund[pos.sp] + 
-                  sub.abund[timesteps,which(names(sub.abund[timesteps,]) == species[i.sp])]
-              }
-            }
+            sub.abund.df <- as.data.frame(sub.abund)
+            sub.abund.df$year.predicted <- (as.numeric(initial.years[i.year]) + 1)
+            sub.abund.df$plot <- plots[i.plot]
+            sub.abund.df$type <- types[i.type]
+            sub.abund.df$intensity <- i.step
+            sub.abund.df$timestep <- 1:nrow(sub.abund.df)
             
-            # projected.abund <- sub.abund[timesteps,]
-            # projected.richness <- sum(projected.abund > persistence.threshold)
-            # projected.abundance <- sum(projected.abund)
-            # projected.evenness <- hill.diversity(projected.abund)
-            # 
-            # pos <- which(pert.sad$year.predicted == (as.numeric(initial.years[i.year]) + 1) &
-            #                pert.sad$plot == plots[i.plot] &
-            #                pert.sad$subplot == subplots[i.sub] &
-            #                pert.sad$type == types[i.type] &
-            #                pert.sad$intensity == i.step)
-            # 
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "richness")]] <- 
-            #   projected.richness
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "abundance")]] <- 
-            #   projected.abundance
-            # pert.sad$value[pos[which(pert.sad$metric[pos] == "evenness")]] <- 
-            #   projected.evenness
+            sub.abund.df <- pivot_longer(sub.abund.df,1:ncol(sub.abund),
+                                         names_to = "species",
+                                         values_to = "abund")
+            
+            plot.list[[count]] <- sub.abund.df
+            count <- count + 1
+            
           }# if !na
         }# for i.step
         
@@ -433,24 +349,36 @@ for(i.year in 1:length(initial.years)){
       
     }# for i.type
     }# for i.sub
+    
+    if(length(plot.list)>0){
+      plot.data <- bind_rows(plot.list) %>% 
+        filter(abund > persistence.threshold) %>%
+        filter(timestep %in% timesteps.to.keep) %>%
+        group_by(year.predicted,plot,type,intensity,timestep,species) %>%
+        summarise(abund.plot = sum(abund))
+      
+      plot.metrics <- plot.data %>%
+        group_by(year.predicted,plot,type,intensity,timestep) %>%
+        summarise(abundance = sum(abund.plot),
+                  richness = n(),
+                  evenness = hill.diversity(abund.plot))
+      
+      all.plots.list[[length(plot.list)+1]] <- plot.metrics
+    }# if plot ok
+    
   }# for i.plot
 }# for i.year
 
 # metrics at the plot level -----------------------------------------------
 
-pert.sad.wide <- pred.plot %>%
-  replace_na(list(abund = 0)) %>%
-  group_by(year.predicted,plot,type,intensity) %>%
-  summarise(abundance = sum(abund),
-            richness = sum(abund > persistence.threshold),
-            evenness = hill.diversity(abund))
+pred.plot <- bind_rows(all.plots.list)
 
 # store results -----------------------------------------------------------
 
-pert.sad <- pivot_longer(pert.sad.wide,cols = abundance:evenness,
+pert.sad <- pivot_longer(pred.plot,cols = abundance:evenness,
                          names_to = "metric",
                          values_to = "value")
 
-write.csv2(pert.sad,file = "results/predicted_SAD_components_subplot_aggregated.csv",
+write.csv2(pert.sad,file = "results/predicted_SAD_components_subplot_aggregated_v2.csv",
            row.names = FALSE)
 
