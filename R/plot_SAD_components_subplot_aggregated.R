@@ -7,7 +7,7 @@ library(patchwork)
 
 obs <- read.csv2(file = "results/observed_SAD_components_subplot.csv",
                  stringsAsFactors = FALSE)
-pred <- read.csv2(file = "results/predicted_SAD_components_subplot_aggregated_v2.csv",
+pred <- read.csv2(file = "results/predicted_SAD_components_subplot_aggregated.csv",
                   stringsAsFactors = FALSE)
 
 pred <- subset(pred, timestep == 2)

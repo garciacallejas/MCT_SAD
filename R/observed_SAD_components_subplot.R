@@ -4,22 +4,22 @@ source("R/hill_diversity.R")
 
 # read data ---------------------------------------------------------------
 
-abund.obs <- read.csv2("../Caracoles/data/abundances.csv",header = TRUE,
+abund.obs <- read.csv2("results/abund_filtered.csv",header = TRUE,
                        stringsAsFactors = FALSE)
 
 # this just to constrain abundances to the same set of sp as the other files
-alpha.df <- read.csv2("results/alpha.csv",stringsAsFactors = FALSE,
+alpha.df <- read.csv2("results/alpha_RK.csv",stringsAsFactors = FALSE,
                       row.names = 1)
 alpha.matrix <- as.matrix(alpha.df)
 
-sp.rates <- read.csv2("../Caracoles/data/plant_species_traits.csv",
-                      header = TRUE,stringsAsFactors = FALSE)
-sp.valid <- sp.rates$species.code[which(!is.na(sp.rates$germination.rate))]
+# sp.rates <- read.csv2("../Caracoles/data/plant_species_traits.csv",
+#                       header = TRUE,stringsAsFactors = FALSE)
+# sp.valid <- sp.rates$species.code[which(!is.na(sp.rates$germination.rate))]
 
 # extract components ------------------------------------------------------
 
 plot.obs <- abund.obs %>%
-  filter(species %in% sp.valid & species %in% rownames(alpha.matrix)) %>%
+  filter(species %in% rownames(alpha.matrix)) %>%
   filter(!is.na(individuals) &
            individuals > 0) %>%
   group_by(year,plot, subplot,species) %>%

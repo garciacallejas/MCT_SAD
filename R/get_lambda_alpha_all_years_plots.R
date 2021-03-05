@@ -55,7 +55,7 @@ source("./R/AP_project_alpha_pairwise_lambdacov_none_alphacov_none.R")
 # the AP model includes g,s, which are species-specific, 
 # and therefore would contribute to fitness diff. If I want 
 # to have complete control, I need a model only with lambda/alphas
-model_family <- "RK" #AP
+model_family <- "RK"
 
 optimization_method <- "bobyqa"
 alpha_form <- "pairwise"
@@ -66,7 +66,7 @@ fixed_terms <- NULL
 bootstrap_samples <- 0
 
 initial_values <- list(lambda = 10, alpha_intra = 0.01, alpha_inter = 0.01)
-# to remove niche diff, we need positive coefficients
+
 lower_bounds <- list(lambda = 0, alpha_intra = 0, alpha_inter = 0)
 upper_bounds <- list(lambda = 1e3, alpha_intra = 1, alpha_inter = 1)
 
@@ -92,6 +92,6 @@ caracoles.fit <- cxr_pm_multifit(data = neigh.list,
 sp.lambdas <- data.frame(sp = focal.sp, lambda = caracoles.fit$lambda)
 alpha.matrix <- caracoles.fit$alpha_matrix
 
-write.csv2(sp.lambdas, file = "./results/lambda.csv",row.names = FALSE)
-write.csv2(alpha.matrix,file = "./results/alpha.csv")
+write.csv2(sp.lambdas, file = paste("./results/lambda_",model_family,".csv",sep=""),row.names = FALSE)
+write.csv2(alpha.matrix,file = paste("./results/alpha_",model_family,".csv",sep=""),row.names = FALSE)
 
