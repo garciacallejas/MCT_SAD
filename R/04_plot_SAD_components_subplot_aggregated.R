@@ -79,7 +79,7 @@ pred.dif.plot <- ggplot(pred.delta.avg,aes(x = intensity, y = mean.value)) +
   # scale_x_discrete(breaks=NULL)+
   theme(strip.background = element_blank())+
   NULL
-# pred.dif.plot
+pred.dif.plot
 
 # store plots -------------------------------------------------------------
 
@@ -88,9 +88,9 @@ pred.dif.plot <- ggplot(pred.delta.avg,aes(x = intensity, y = mean.value)) +
 #        device = cairo_pdf,
 #        width = 6,height = 4,dpi = 300)
 # 
-# ggsave(filename = "results/images/predicted_perturbations_subplot.pdf",
-#        plot = pred.dif.plot,
-#        device = cairo_pdf,
-#        width = 8,height = 4,dpi = 300)
+ggsave(filename = "results/images/predicted_perturbations_subplot_RK.pdf",
+       plot = pred.dif.plot,
+       device = cairo_pdf,
+       width = 8,height = 4,dpi = 300)
 
 

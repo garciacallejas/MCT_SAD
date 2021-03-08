@@ -11,8 +11,8 @@ source("R/gradient_diag_dominance.R")
 
 # read data ---------------------------------------------------------------
 
-lambda <- read.csv2("./results/lambda_RK.csv",stringsAsFactors = FALSE)
-alpha.df <- read.csv2("results/alpha_RK.csv",stringsAsFactors = FALSE,
+lambda <- read.csv2("./results/lambda_BH.csv",stringsAsFactors = FALSE)
+alpha.df <- read.csv2("results/alpha_BH.csv",stringsAsFactors = FALSE,
                       row.names = 1)
 alpha.matrix <- as.matrix(alpha.df)
 
@@ -22,8 +22,8 @@ alpha.matrix <- as.matrix(alpha.df)
 
 abund <- read.csv2("results/abund_filtered.csv",
                    header = TRUE,stringsAsFactors = FALSE)
-sp.rates <- read.csv2("../Caracoles/data/plant_species_traits.csv",
-                      header = TRUE,stringsAsFactors = FALSE)
+#sp.rates <- read.csv2("../Caracoles/data/plant_species_traits.csv",
+#                      header = TRUE,stringsAsFactors = FALSE)
 # sp.valid <- sp.rates$species.code[which(!is.na(sp.rates$germination.rate))]
 
 base.abund <- abund %>% 
@@ -189,4 +189,4 @@ names(communities) <- years
 
 # store results -----------------------------------------------------------
 
-save(communities,file = "results/communities_subplot.Rdata")
+save(communities,file = "results/communities_subplot_BH.Rdata")

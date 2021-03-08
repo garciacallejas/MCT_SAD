@@ -1,5 +1,6 @@
 
 library(tidyverse)
+library(cxr)
 
 # read abundance data per plot and year -----------------------------------
 
@@ -7,8 +8,8 @@ abund <- read.csv2("results/abund_filtered.csv",
                    header = TRUE,stringsAsFactors = FALSE)
 comp <- read.csv2("results/neigh_filtered.csv",
                   header = TRUE,stringsAsFactors = FALSE)
-sp.rates <- read.csv2("../Caracoles/data/plant_species_traits.csv",
-                      header = TRUE,stringsAsFactors = FALSE)
+#sp.rates <- read.csv2("../Caracoles/data/plant_species_traits.csv",
+#                      header = TRUE,stringsAsFactors = FALSE)
 # sp.valid <- sp.rates$species.code[which(!is.na(sp.rates$germination.rate))]
 # 
 # base.abund <- abund %>% 
@@ -41,8 +42,6 @@ for(i.sp in 1:length(focal.sp)){
 
 # initial values ----------------------------------------------------------
 
-library(cxr)
-
 # load model
 # this is an Annual Plant model, 
 # using the Ricker model from Mayfield and Stouffer 2017
@@ -55,7 +54,7 @@ source("./R/AP_project_alpha_pairwise_lambdacov_none_alphacov_none.R")
 # the AP model includes g,s, which are species-specific, 
 # and therefore would contribute to fitness diff. If I want 
 # to have complete control, I need a model only with lambda/alphas
-model_family <- "RK"
+model_family <- "BH"
 
 optimization_method <- "bobyqa"
 alpha_form <- "pairwise"

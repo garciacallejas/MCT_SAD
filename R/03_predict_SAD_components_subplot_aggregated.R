@@ -5,10 +5,10 @@ source("R/hill_diversity.R")
 
 # read data ---------------------------------------------------------------
 
-load("results/communities_subplot.Rdata")
+load("results/communities_subplot_BH.Rdata")
 
 # species names
-lambda.orig <- read.csv2("results/lambda_RK.csv",stringsAsFactors = FALSE)
+lambda.orig <- read.csv2("results/lambda_BH.csv",stringsAsFactors = FALSE)
 
 # some constants ----------------------------------------------------------
 
@@ -377,6 +377,6 @@ pert.sad <- pivot_longer(pred.plot,cols = abundance:evenness,
                          names_to = "metric",
                          values_to = "value")
 
-write.csv2(pert.sad,file = "results/predicted_SAD_components_subplot_aggregated.csv",
+write.csv2(pert.sad,file = "results/predicted_SAD_components_subplot_aggregated_BH.csv",
            row.names = FALSE)
 
