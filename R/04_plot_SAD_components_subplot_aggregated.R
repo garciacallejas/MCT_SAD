@@ -135,7 +135,9 @@ for(i.model in 1:length(model_family)){
       NULL
     # pred.dif.plot
     
-    ggsave(filename = paste("results/images/variations_",model_family[i.model],"_t",i.timestep,".pdf",sep=""),
+    ggsave(filename = paste("results/images/variations_",
+                            model_family[i.model],"_t",
+                            i.timestep,".pdf",sep=""),
            plot = pred.dif.plot,
            device = cairo_pdf,
            width = 8,height = 4,dpi = 300)
