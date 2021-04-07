@@ -1,0 +1,78 @@
+---
+title: "The structure of pairwise interactions impacts species abundance distributions"
+author: "David García Callejas, Ignasi Bartomeus, Oscar Godoy"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE,message = FALSE)
+```
+
+## Methods
+
+We projected species abundance distributions from an annual plant community using population dynamics models. First, we parameterized these models given the observed data, obtaining maximum-likelihood estimates of intrinsic fecundity rates ($\lambda_i$) and interaction coefficients among species (both intraspecific, $\alpha_{ii}$, and interspecific, $\alpha_{ij}$). We projected the dynamics of the community for 20 timesteps, and at each timestep we retrieved the three components of species abundance distributions in the community: total abundance, richness, and evenness (REF). 
+
+Taking as a baseline the inferred interaction matrix $A_0$, we quantified the variation in SAD components under three perturbations of $A_0$: decreasing diagonal dominance, decreasing interaction assymetry, and decreasing heterogeneity in the distribution of interaction strengths.
+
+### Dataset
+
+
+Caracoles - reuse any of the previous methods
+
+### Parameterizing population dynamics models
+
+
+We estimated model parameters from the annual plant dataset using the `cxr` R package (REF). Specifically, we obtained a set of parameters $(\lambda,A_0)$ (intrinsic growth rates for all species and interaction matrix) for three different population dynamics models, in order to evaluate the robustness of our results to different model formulations. The models we considered are the Ricker model, the Beverton-Hold model, and the Law-Watkison model (EQ).
+
+[Add details about the estimation method: maximum-likelihood with bobyqa optimizer, constraints, etc].
+
+### Perturbing the interaction matrix
+
+
+We defined three structural perturbations of $A_0$. As the three perturbations are quantitative, i.e. imply variations in the interaction strength of specific elements $\alpha_{ij}$ of the matrix, we considered a 10-step gradient ranging from the estimated $A_0$ values to the most homogeneous matrices.
+
+The first treatment is the decreasing of diagonal dominance, by which diagonal elements representing intraspecific interactions converge towards the overall mean of the coefficients $\bar{\alpha_*}$.
+
+The second treatment is the decreasing of interaction asymmetry, by which the two coefficients of an interaction pair $\alpha_{ij},\alpha_{ji}$ converge towards their mean.
+
+The third treatment is the decreasing of heterogeneity in the overall distribution of interaction strengths, by which all interactions $\alpha_*$ converge towards the overall mean $\bar{\alpha_*}$.
+
+Overall, we obtained 31 interactions matrices for each model (an initial field-parameterized $A_0$ + 10 increasingly homogeneous matrices for each of the three perturbations).
+
+### Projecting abundances
+
+
+We projected the dynamics of each of the 93 modelled communities with the `abundance_projection` function of the `cxr` package, and obtained the associated components of the species abundance distribution at each of the 20 timestepes projected. In particular, we used as baseline data the observed information for 2015 and 2016, in order to compare the projections at t+1 with the data gathered in 2016 and 2017, respectively.
+
+## Results
+
+1 - observed/predicted check
+
+First, we compared the projections from the three population dynamics models fed with the field-parameterized matrices $A_0$ at t+1 with the observed abundances.
+
+Second, we checked the variation of SAD components in time, up to the 20 timesteps projected.
+
+Third, we obtained the relative differences that each perturbation triggered in each SAD component.
+
+```{r f1, fig.align = 'center', out.width = "70%", fig.cap='observed-predicted (each point corresponds to one caracoles plot at one year)', echo=FALSE}
+knitr::include_graphics("../results/images/observed_predicted_plot.pdf")
+```
+
+```{r f2, fig.align = 'center', out.width = "99%", fig.cap='temporal trends on SAD components with the three population dynamics models considered. Points are the average over all plots and the two years projected, and error bars represent one standard deviation of these averages.', echo=FALSE}
+knitr::include_graphics("../results/images/timestep_trends.pdf")
+```
+
+
+```{r f31, fig.align = 'center', out.width = "99%", fig.cap='Effect of each perturbation intensity on each SAD component, relative to the projection with the field-parameterized matrix. Higher intensity (increasing x axis) represents a more homogenous matrix. dd: diagonal dominance, ia: interaction asymmetry, id: interaction distribution. Ricker model, results in timestep 10', echo=FALSE}
+knitr::include_graphics("../results/images/orig/variations_RK_t10.pdf")
+```
+
+
+```{r f32, fig.align = 'center', out.width = "99%", fig.cap='Effect of each perturbation intensity on each SAD component, relative to the projection with the field-parameterized matrix. Higher intensity (increasing x axis) represents a more homogenous matrix. dd: diagonal dominance, ia: interaction asymmetry, id: interaction distribution. Beverton-Holt model, results in timestep 10', echo=FALSE}
+knitr::include_graphics("../results/images/orig/variations_BH_t10.pdf")
+```
+
+
+```{r f33, fig.align = 'center', out.width = "99%", fig.cap='Effect of each perturbation intensity on each SAD component, relative to the projection with the field-parameterized matrix. Higher intensity (increasing x axis) represents a more homogenous matrix. dd: diagonal dominance, ia: interaction asymmetry, id: interaction distribution. Law-Watkinson model, results in timestep 10', echo=FALSE}
+knitr::include_graphics("../results/images/orig/variations_LW_t10.pdf")
+```
