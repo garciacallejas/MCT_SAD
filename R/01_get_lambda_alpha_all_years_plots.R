@@ -53,10 +53,10 @@ bootstrap_samples <- 0
 # lower_bounds <- list(lambda = 0, alpha_intra = 0, alpha_inter = 0)
 # upper_bounds <- list(lambda = 1e3, alpha_intra = 1, alpha_inter = 1)
 
-initial_values <- list(lambda = 10, alpha_intra = 0.5, alpha_inter = 0.01)
+initial_values <- list(lambda = 1, alpha_intra = 0.0001, alpha_inter = 0.00001)
 
-lower_bounds <- list(lambda = 0, alpha_intra = 0.5, alpha_inter = 0)
-upper_bounds <- list(lambda = 1e3, alpha_intra = 1, alpha_inter = 0.5)
+lower_bounds <- list(lambda = 0, alpha_intra = 0.00001, alpha_inter = 0)
+upper_bounds <- list(lambda = 10, alpha_intra = 0.001, alpha_inter = 0.0001)
 
 # fit models --------------------------------------------------------------
 

@@ -98,7 +98,9 @@ HD_pm_alpha_pairwise_lambdacov_none_alphacov_none <- function(par,
   intra_term <- alpha_intra*neigh_intra_matrix[,1]^2
   term <- term + intra_term
   
-  pred <- lambda * exp(term)
+  # note the lambda inside the exponential
+  # hopefully this prevents unbounded growth
+  pred <- exp(lambda + term)
 
   if(any(pred == 0)){
     pred[which(pred == 0)] <- 1e-10

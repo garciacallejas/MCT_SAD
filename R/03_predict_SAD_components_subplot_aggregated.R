@@ -5,7 +5,7 @@ source("R/hill_diversity.R")
 
 # read data ---------------------------------------------------------------
 
-load("results/communities_subplot.Rdata")
+load("results/communities_subplot_lowalphas.Rdata")
 
 # some constants ----------------------------------------------------------
 
@@ -37,6 +37,7 @@ steps <- length(communities[[1]][[1]][[1]][[1]][["nd"]][["alpha"]])
 metrics <- c("richness","abundance","evenness")
 
 # load the model
+source("R/HD_project_alpha_pairwise_lambdacov_none_alphacov_none.R")
 # source("./R/AP_pm_alpha_pairwise_lambdacov_none_alphacov_none.R")
 # source("./R/AP_project_alpha_pairwise_lambdacov_none_alphacov_none.R")
 
@@ -385,6 +386,6 @@ pert.sad <- pivot_longer(pred.plot,cols = abundance:evenness,
                          names_to = "metric",
                          values_to = "value")
 
-write.csv2(pert.sad,file = "results/predicted_SAD_components_subplot_aggregated.csv",
+write.csv2(pert.sad,file = "results/predicted_SAD_components_subplot_aggregated_HD_lowalphas.csv",
            row.names = FALSE)
 
