@@ -1,0 +1,38 @@
+# adapted from https://stefanoallesina.github.io/Sao_Paulo_School/multi.html#how-many-species-will-coexist
+# and my own SME repo
+
+library(tidyverse)
+library(deSolve)
+
+# Generalized Lotka-Volterra model
+GLV <- function(t, x, parameters){
+    with(as.list(c(x, parameters)), {
+        x[x < 10^-8] <- 0 # prevent numerical problems
+        dxdt <- x * (r + A %*% x)
+        list(dxdt)
+    })
+}
+
+# function to plot output
+tidy_ODE_output <- function(out){
+    out <- as.data.frame(out)
+    colnames(out) <- c("time", paste("sp", 1:(ncol(out) -1), sep = "_"))
+    out <- as_tibble(out) %>% gather(species, density, -time)
+    # pl <- ggplot(data = out) + 
+    #     aes(x = time, y = density, colour = species) + 
+    #     geom_line()
+    # show(pl)
+    return(out)
+}
+# general function to integrate GLV
+integrate_GLV <- function(r, A, x0, maxtime = 100, steptime = 0.5){
+    times <- seq(0, maxtime, by = steptime)
+    parameters <- list(r = r, A = A)
+    # solve numerically
+    out <- ode(y = x0, times = times, 
+               func = GLV, parms = parameters, 
+               method = "ode45")
+    # make into tidy form
+    out <- tidy_ODE_output(out)
+    return(out)
+}
