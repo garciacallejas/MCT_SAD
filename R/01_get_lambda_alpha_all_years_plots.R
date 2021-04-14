@@ -41,7 +41,7 @@ for(i.sp in 1:length(focal.sp)){
 # source("./R/AP_project_alpha_pairwise_lambdacov_none_alphacov_none.R")
 
 # Test all standard models in cxr
-model_family <- c("BH","LW","RK")
+model_family <- c("LV")
 
 optimization_method <- "bobyqa"
 alpha_form <- "pairwise"
@@ -56,10 +56,10 @@ bootstrap_samples <- 0
 # lower_bounds <- list(lambda = 0, alpha_intra = 0, alpha_inter = 0)
 # upper_bounds <- list(lambda = 1e3, alpha_intra = 1, alpha_inter = 1)
 
-initial_values <- list(lambda = 10, alpha_intra = 0.5, alpha_inter = 0.01)
+initial_values <- list(lambda = 1, alpha_intra = 0, alpha_inter = 0)
 
-lower_bounds <- list(lambda = 0, alpha_intra = 0.5, alpha_inter = 0)
-upper_bounds <- list(lambda = 1e3, alpha_intra = 1, alpha_inter = 0.5)
+lower_bounds <- list(lambda = 0, alpha_intra = 0, alpha_inter = 0)
+upper_bounds <- list(lambda = 10, alpha_intra = 1, alpha_inter = 0.5)
 
 # fit models --------------------------------------------------------------
 
