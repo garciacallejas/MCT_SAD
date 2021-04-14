@@ -7,12 +7,16 @@ library(patchwork)
 
 obs <- read.csv2(file = "results/observed_SAD_components_subplot.csv",
                  stringsAsFactors = FALSE)
-pred <- read.csv2(file = "results/predicted_SAD_components_subplot_aggregated.csv",
+
+# CHANGE IF NEEDED - careful with overwriting the names of the plots
+pred <- read.csv2(file = "results/predicted_SAD_components_subplot_aggregated_HD_lowalphas.csv",
                   stringsAsFactors = FALSE)
 
 # pred <- subset(pred, timestep == 2)
 
 # plots -------------------------------------------------------------------
+
+save.plots <- FALSE
 
 # -------------------------------------------------------------------------
 # 1 - temporal trends for all models and types of matrix perturbations
@@ -60,10 +64,6 @@ f1 <- ggplot(pred.3,aes(x = timestep, y = mean.value, group = model)) +
   NULL
 # f1
 
-ggsave(filename = "results/images/timestep_trends.pdf",
-       plot = f1,
-       device = cairo_pdf,
-       width = 10,height = 10,dpi = 300)
 
 # -------------------------------------------------------------------------
 # 2 - variations with respect to the standard matrix
@@ -135,12 +135,14 @@ for(i.model in 1:length(model_family)){
       NULL
     # pred.dif.plot
     
+    if(save.plots){
     ggsave(filename = paste("results/images/variations_",
                             model_family[i.model],"_t",
                             i.timestep,".pdf",sep=""),
            plot = pred.dif.plot,
            device = cairo_pdf,
            width = 8,height = 4,dpi = 300)
+    }
   }# for i.timestep
 }# for i.model
 
@@ -182,12 +184,18 @@ obs.pred.plot <- ggplot(obs.pred, aes(x = type, y = value)) +
   scale_x_discrete(breaks=NULL)+
   theme(strip.background = element_blank())+
   NULL
-obs.pred.plot
+# obs.pred.plot
 
-ggsave(filename = "results/images/observed_predicted_plot.pdf",
-       plot = obs.pred.plot,
-       device = cairo_pdf,
-       width = 6,height = 4,dpi = 300)
+# save plots --------------------------------------------------------------
 
-
+if(save.plots){
+  ggsave(filename = "results/images/timestep_trends.pdf",
+         plot = f1,
+         device = cairo_pdf,
+         width = 10,height = 10,dpi = 300)
+  ggsave(filename = "results/images/observed_predicted_plot.pdf",
+         plot = obs.pred.plot,
+         device = cairo_pdf,
+         width = 6,height = 4,dpi = 300)
+}
 

@@ -31,17 +31,18 @@ for(i.sp in 1:length(focal.sp)){
 # initial values ----------------------------------------------------------
 
 # load models
-# this is an Annual Plant model, 
-# using the Ricker model from Mayfield and Stouffer 2017
-# it is commented because I used it in a previous version:
-# the AP model includes g,s, which are species-specific, 
-# and therefore would contribute to fitness diff. If I want 
-# to have complete control, I need a model only with lambda/alphas.
-# source("./R/AP_pm_alpha_pairwise_lambdacov_none_alphacov_none.R")
-# source("./R/AP_project_alpha_pairwise_lambdacov_none_alphacov_none.R")
 
 # Test all standard models in cxr
+<<<<<<< HEAD
 model_family <- c("LV")
+=======
+# model_family <- c("BH","LW","RK")
+
+# try a High Density dependence (HD) model,
+# based on the ricker formulation
+model_family <- "HD"
+source("R/HD_pm_alpha_pairwise_lambdacov_none_alphacov_none.R")
+>>>>>>> 4355279d30e67477a2a968de83466284d6a57b70
 
 optimization_method <- "bobyqa"
 alpha_form <- "pairwise"
@@ -60,6 +61,7 @@ initial_values <- list(lambda = 1, alpha_intra = 0, alpha_inter = 0)
 
 lower_bounds <- list(lambda = 0, alpha_intra = 0, alpha_inter = 0)
 upper_bounds <- list(lambda = 10, alpha_intra = 1, alpha_inter = 0.5)
+
 
 # fit models --------------------------------------------------------------
 
