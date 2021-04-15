@@ -12,7 +12,7 @@ source("R/gradient_diag_dominance.R")
 # some constants ----------------------------------------------------------
 
 # model_family <- c("BH","LW","RK")
-model_family <- "HD"
+model_family <- "LV"
 steps <- 10
 types <- c("obs","nd","fd","ia","id","dd")
 communities <- list()
@@ -191,4 +191,4 @@ names(communities) <- model_family
 
 # store results -----------------------------------------------------------
 
-save(communities,file = "results/communities_subplot_lowalphas.Rdata")
+save(communities,file = "results/communities_subplot_LV.Rdata")
