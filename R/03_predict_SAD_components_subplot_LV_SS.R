@@ -2,6 +2,7 @@
 library(tidyverse)
 library(cxr)
 source("R/hill_diversity.R")
+source("R/GLV_functions.R")
 
 # read data ---------------------------------------------------------------
 
@@ -37,14 +38,14 @@ steps <- length(communities[[1]][[1]][[1]][[1]][["nd"]][["alpha"]])
 metrics <- c("richness","abundance","evenness")
 
 # load the model
-source("R/HD_project_alpha_pairwise_lambdacov_none_alphacov_none.R")
+# source("R/HD_project_alpha_pairwise_lambdacov_none_alphacov_none.R")
 # source("./R/AP_pm_alpha_pairwise_lambdacov_none_alphacov_none.R")
 # source("./R/AP_project_alpha_pairwise_lambdacov_none_alphacov_none.R")
 
-optimization_method <- "bobyqa"
-alpha_form <- "pairwise"
-lambda_cov_form <- "none"
-alpha_cov_form <- "none"
+# optimization_method <- "bobyqa"
+# alpha_form <- "pairwise"
+# lambda_cov_form <- "none"
+# alpha_cov_form <- "none"
 
 # results data structures -------------------------------------------------
 
@@ -60,7 +61,7 @@ alpha_cov_form <- "none"
 # list keeping the metrics for each plot/year
 all.plots.list <- list()
 # count <- 1
-timesteps.to.keep <- c(1:20)
+# timesteps.to.keep <- c(1:20)
 
 # project abundances for every community ----------------------------------
 # and store them at the plot level
@@ -89,14 +90,20 @@ for(i.model in 1:length(model_family)){
               sp.abund <- abund.df$abundance
               names(sp.abund) <- abund.df$species
               
-              sub.abund <- cxr::abundance_projection(lambda = sp.lambda,
-                                                     alpha_matrix = sp.alpha,
-                                                     model_family = model_family[i.model],
-                                                     alpha_form = alpha_form,
-                                                     lambda_cov_form = lambda_cov_form,
-                                                     alpha_cov_form = alpha_cov_form,
-                                                     timesteps = timesteps,
-                                                     initial_abundances = sp.abund)
+              sp.alpha.sign <- sp.alpha * -1
+              
+              sub.abund <- integrate_GLV(r = sp.lambda,
+                                         A = sp.alpha.sign,
+                                         x0 = sp.abund)
+              
+              # sub.abund <- cxr::abundance_projection(lambda = sp.lambda,
+              #                                        alpha_matrix = sp.alpha,
+              #                                        model_family = model_family[i.model],
+              #                                        alpha_form = alpha_form,
+              #                                        lambda_cov_form = lambda_cov_form,
+              #                                        alpha_cov_form = alpha_cov_form,
+              #                                        timesteps = timesteps,
+              #                                        initial_abundances = sp.abund)
               
               sub.abund.df <- as.data.frame(sub.abund)
               sub.abund.df$model <- model_family[i.model]

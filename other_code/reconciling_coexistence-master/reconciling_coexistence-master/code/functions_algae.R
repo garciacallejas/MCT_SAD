@@ -28,10 +28,10 @@ fit_qp_LV <- function(A,r,x_obs,tol=0.5){
 	h <- c(Alow,rlow,-Aupp,-rupp)
 	G <- rbind(diag(npar),-diag(npar))
 	# equality constraints, assuming at equilibirum
-	E <- cbind(as.matrix(bdiag(replicate(nspp,matrix(x_obs,nrow=1),simplify = F))),diag(nspp))
+	E <- cbind(as.matrix(Matrix::bdiag(replicate(nspp,matrix(x_obs,nrow=1),simplify = F))),diag(nspp))
 	f <- rep(0,nrow(E))
 	# fit the qp model, returning a silent warning if it doesn't converge
-	fit <- tryCatch(lsei(A=diag(npar),B=parvec,E=E,F=f,G=G,H=h),  error=function(e) e, warning=function(w) w)
+	fit <- tryCatch(limSolve::lsei(A=diag(npar),B=parvec,E=E,F=f,G=G,H=h),  error=function(e) e, warning=function(w) w)
 	return(fit)
 }
 

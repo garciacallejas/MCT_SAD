@@ -1,6 +1,7 @@
 
 library(tidyverse)
 source("other_code/reconciling_coexistence-master/reconciling_coexistence-master/code/functions_algae.R")
+source("R/GLV_functions.R")
 
 # read data ---------------------------------------------------------------
 
@@ -26,6 +27,7 @@ subplots <- sort(unique(abund$subplot))
 
 stable_communities <- list()
 
+# i.year <- i.plot <- i.sub <- 1
 for(i.year in 1:length(years)){
   
   stable_communities[[i.year]] <- list()
@@ -59,19 +61,35 @@ for(i.year in 1:length(years)){
         lambda.obs <- lambda[lambda$sp %in% present.sp,]
         lambda.obs <- arrange(lambda.obs,sp)
         
-        alpha.obs <- alpha.matrix[present.sp,present.sp]
+        # the quadratic programming function accepts negative coefficients
+        # for competition
+        alpha.obs <- alpha.matrix[present.sp,present.sp] * -1
         alpha.obs[which(is.na(alpha.obs))] <- 0
         
         corrected_A <- fit_qp_LV(A=alpha.obs,
                                  r=lambda.obs$lambda,
                                  x_obs=abund.obs$abundance,
                                  tol=1000)
+      
         if(!inherits(corrected_A,"warning")){
           nspp <- ncol(alpha.obs)
           Afit <- t(matrix(corrected_A$X[1:nspp^2], nspp,nspp,
                            dimnames = list(rownames(alpha.obs),colnames(alpha.obs))))
           rfit <- data.frame(sp = lambda.obs$sp, rfit = corrected_A$X[(nspp^2+1):(nspp^2+nspp)])
           # round(Afit,2)
+          # x_obs <- abund.obs$abundance
+          # # exact solution?
+          # round(x_obs*(rfit$rfit+Afit%*%x_obs),12)
+          # # steady state SAD
+          # test <- integrate_GLV(r = rfit$rfit,
+          #                       A = Afit,
+          #                       x0 = x_obs)
+          # out <- as.data.frame(test)
+          # colnames(out) <- c("time", paste("sp", 1:(ncol(out) -1), sep = "_"))
+          # out <- as_tibble(out) %>% gather(species, density, -time)
+          # pl <- ggplot(data = out) +
+          #     aes(x = time, y = density, colour = species) +
+          #     geom_line()
           
           stable_communities[[i.year]][[i.plot]][[i.sub]][[1]] <- abund.obs
           stable_communities[[i.year]][[i.plot]][[i.sub]][[2]] <- rfit
