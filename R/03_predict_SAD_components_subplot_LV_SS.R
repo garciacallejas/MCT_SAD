@@ -92,9 +92,9 @@ for(i.model in 1:length(model_family)){
               
               sp.alpha.sign <- sp.alpha * -1
               
-              sub.abund <- integrate_GLV(r = sp.lambda,
-                                         A = sp.alpha.sign,
-                                         x0 = sp.abund)
+              # sub.abund <- integrate_GLV(r = sp.lambda,
+              #                            A = sp.alpha.sign,
+              #                            x0 = sp.abund)
               
               # sub.abund <- cxr::abundance_projection(lambda = sp.lambda,
               #                                        alpha_matrix = sp.alpha,

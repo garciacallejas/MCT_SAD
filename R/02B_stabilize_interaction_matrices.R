@@ -93,18 +93,19 @@ for(i.year in 1:length(years)){
           
           stable_communities[[i.year]][[i.plot]][[i.sub]][[1]] <- abund.obs
           stable_communities[[i.year]][[i.plot]][[i.sub]][[2]] <- rfit
-          stable_communities[[i.year]][[i.plot]][[i.sub]][[3]] <- alpha.obs
+          stable_communities[[i.year]][[i.plot]][[i.sub]][[3]] <- Afit
+          # cat("\n",years[i.year],i.plot,subplots[i.sub],"OK",sep="-")
         }else{
           stable_communities[[i.year]][[i.plot]][[i.sub]][[1]] <- NA
           stable_communities[[i.year]][[i.plot]][[i.sub]][[2]] <- NA
           stable_communities[[i.year]][[i.plot]][[i.sub]][[3]] <- NA
-          cat("\n",years[i.year],i.plot,subplots[i.sub],sep="-")
+          # cat("\n",years[i.year],i.plot,subplots[i.sub],"--- NOT OK ---",sep="-")
         }
       }else{
         stable_communities[[i.year]][[i.plot]][[i.sub]][[1]] <- NA
         stable_communities[[i.year]][[i.plot]][[i.sub]][[2]] <- NA
         stable_communities[[i.year]][[i.plot]][[i.sub]][[3]] <- NA
-        cat("\n-1sp",years[i.year],i.plot,subplots[i.sub],sep="-")
+        # cat("\n-1sp",years[i.year],i.plot,subplots[i.sub],"--- NOT OK ---",sep="-")
       }
       
       names(stable_communities[[i.year]][[i.plot]][[i.sub]]) <- c("abundances",
