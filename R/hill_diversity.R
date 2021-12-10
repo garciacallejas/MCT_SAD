@@ -8,7 +8,8 @@
 #'
 #' @examples hill.diversity(c(1,20,34,32,355,5))
 hill.diversity <- function(abundances,q = 1){
-  ab <- abundances[abundances != 0]
+  ab <- abundances[which(!is.na(abundances))]
+  ab <- ab[ab != 0]
   if(length(ab)>0){
   ab <- ab/sum(ab)
   R <- length(ab)
