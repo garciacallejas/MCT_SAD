@@ -13,6 +13,14 @@ GLV <- function(t, x, parameters){
     })
 }
 
+GLV.positive.competition <- function(t, x, parameters){
+    with(as.list(c(x, parameters)), {
+        x[x < 10^-8] <- 0 # prevent numerical problems
+        dxdt <- x * (r - A %*% x)
+        list(dxdt)
+    })
+}
+
 # function to plot output
 tidy_ODE_output <- function(out){
     out <- as.data.frame(out)
@@ -25,16 +33,23 @@ tidy_ODE_output <- function(out){
     return(out)
 }
 # general function to integrate GLV
-integrate_GLV <- function(r, A, x0, maxtime = 100, steptime = 0.5){
+integrate_GLV <- function(r, A, x0, maxtime = 100, steptime = 0.5,positive.competition = FALSE){
     times <- seq(0, maxtime, by = steptime)
     parameters <- list(r = r, A = A)
     # solve numerically
-    out <- ode(y = x0, times = times, 
-               func = GLV, parms = parameters, 
-               method = "ode45")
+    if(positive.competition){
+        out <- ode(y = x0, times = times, 
+                   func = GLV.positive.competition, 
+                   parms = parameters, 
+                   method = "ode45")
+    }else{
+        out <- ode(y = x0, times = times, 
+                   func = GLV, parms = parameters, 
+                   method = "ode45")
+    }
     # make into tidy form
     out2 <- tidy_ODE_output(out)
-    return(out)
+    return(out2)
 }
 
 build_LDstable <- function(n){

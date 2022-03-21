@@ -1,7 +1,8 @@
 ---
 title: "The structure of pairwise interactions impacts species abundance distributions"
 author: "David García Callejas, Ignasi Bartomeus, Oscar Godoy"
-output: pdf_document
+output:
+  bookdown::pdf_document2: default
 ---
 
 ```{r setup, include=FALSE}
@@ -16,8 +17,7 @@ Taking as a baseline the inferred interaction matrix $A_0$, we quantified the va
 
 ### Dataset
 
-
-Caracoles - reuse any of the previous methods
+Caracoles (note: update with 2020 and 2021 data)
 
 ### Parameterizing population dynamics models
 
@@ -29,7 +29,7 @@ We estimated model parameters from the annual plant dataset using the `cxr` R pa
 ### Perturbing the interaction matrix
 
 
-We defined three structural perturbations of $A_0$. As the three perturbations are quantitative, i.e. imply variations in the interaction strength of specific elements $\alpha_{ij}$ of the matrix, we considered a 10-step gradient ranging from the estimated $A_0$ values to the most homogeneous matrices.
+We defined three structural perturbations of $A_0$ that imply different homogeneizations of interaction coefficients. As the three perturbations are quantitative, i.e. imply variations in the interaction strength of specific elements $\alpha_{ij}$ of the matrix, we considered a 10-step gradient ranging from the estimated $A_0$ values to the most homogeneous matrices.
 
 The first treatment is the decreasing of diagonal dominance, by which diagonal elements representing intraspecific interactions converge towards the overall mean of the coefficients $\bar{\alpha_*}$.
 
@@ -46,22 +46,24 @@ We projected the dynamics of each of the 93 modelled communities with the `abund
 
 ## Results
 
-1 - observed/predicted check
+First, we compared the projections from the three population dynamics models fed with the field-parameterized matrices $A_0$ at t+1 with the observed abundances, i.e. we compared the projections from 2015 to 2016 with the observed 2016 values, and likewise for 2016-2017 (we did not consider 2018 either as an initial or final observed timestep because of a large flooding in the study area that year, that effectively wiped out most plant individuals from the study area) (Fig. \@ref(fig:f1)).
 
-First, we compared the projections from the three population dynamics models fed with the field-parameterized matrices $A_0$ at t+1 with the observed abundances.
-
-Second, we checked the variation of SAD components in time, up to the 20 timesteps projected.
-
-Third, we obtained the relative differences that each perturbation triggered in each SAD component.
 
 ```{r f1, fig.align = 'center', out.width = "70%", fig.cap='observed-predicted (each point corresponds to one caracoles plot at one year)', echo=FALSE}
 knitr::include_graphics("../results/images/observed_predicted_plot.pdf")
 ```
 
-```{r f2, fig.align = 'center', out.width = "99%", fig.cap='temporal trends on SAD components with the three population dynamics models considered. Points are the average over all plots and the two years projected, and error bars represent one standard deviation of these averages.', echo=FALSE}
+\clearpage
+
+Second, for the three models and four matrix types (observed and the three perturbations), we checked the variation of SAD components in time, up to the 20 timesteps projected (Fig. \@ref(fig:f2)).
+
+```{r f2, fig.align = 'center', out.width = "90%", fig.cap='temporal trends on SAD components with the three population dynamics models and the four matrix types considered. obs: field-parameterized interaction matrix; dd: decreased diagonal dominance; id: decreased heterogeneity of the interaction strength distribution; ia: decreased interaction asymmetry. Points are the average over all plots and the two years projected, and error bars represent one standard deviation of these averages.', echo=FALSE}
 knitr::include_graphics("../results/images/timestep_trends.pdf")
 ```
 
+\clearpage
+
+Third, we obtained the relative differences that each perturbation triggered in each SAD component. Here I show the difference between the projections with the field-parameterized matrix and each of the perturbed matrices at the timestep 10 of the projections. As the perturbations are quantitative, I show the effect at 10 different points of a gradient, from less perturbed to more perturbed.
 
 ```{r f31, fig.align = 'center', out.width = "99%", fig.cap='Effect of each perturbation intensity on each SAD component, relative to the projection with the field-parameterized matrix. Higher intensity (increasing x axis) represents a more homogenous matrix. dd: diagonal dominance, ia: interaction asymmetry, id: interaction distribution. Ricker model, results in timestep 10', echo=FALSE}
 knitr::include_graphics("../results/images/orig/variations_RK_t10.pdf")
@@ -76,3 +78,33 @@ knitr::include_graphics("../results/images/orig/variations_BH_t10.pdf")
 ```{r f33, fig.align = 'center', out.width = "99%", fig.cap='Effect of each perturbation intensity on each SAD component, relative to the projection with the field-parameterized matrix. Higher intensity (increasing x axis) represents a more homogenous matrix. dd: diagonal dominance, ia: interaction asymmetry, id: interaction distribution. Law-Watkinson model, results in timestep 10', echo=FALSE}
 knitr::include_graphics("../results/images/orig/variations_LW_t10.pdf")
 ```
+
+\clearpage
+
+## Preliminary interpretation
+
+* Projections are very sensitive to the underlying model - mostly in terms of total abundance, that for the Ricker and Beverton-Holt model explodes to unrealistic values
+
+* Aside from that, which can render the results unreliable, a few trends seem to be consistent:
+  + evenness and richness tend to decrease with time in all projections and matrix types, including the observed parameterization, but total abundance does not.
+  + I'm not sure how to interpret the last figures, in the sense that all perturbations seem to have qualitatively similar effects compared to the observed matrices:
+    - decreasing diagonal dominance: decreases abundance, increases evenness, richness is constant or increases
+    - decreasing interaction asymmetry: decreases abundance, evenness and richness not affected
+    - decreasing interaction heterogeneity: decreases abundance, evenness increases or constant, richness generally increases
+  + Furthermore, it seems that initial perturbations, albeit small, have stronger effects than subsequent increases on the perturbation (i.e. the variation from no changes in the matrix to small changes are stronger than any other increase in the perturbation, as seen in the bumps from the first to the second points in Figures \@ref(fig:f31), \@ref(fig:f32), \@ref(fig:f33)).
+
+## Issues
+
+We are dealing with perturbations in interaction matrices and their effect on abundance projections. First, the abundance projections themselves are unrealistic (abundance explodes in 2 of 3 models), so the rest of the results are difficult to believe. Second, I was expecting more differences between the effects of the different perturbations, but it is true that these structural metrics (diagonal dominance, interaction asymmetry, interaction heterogeneity) have only been studied in relationship to their effects on coexistence or stability, not in their effects over abundances or evenness.
+
+In order to minimize concerns over unrealistic projections, we can:
+
+* drop the caracoles data and stick to simulations, as well as choose one model that does not explode and stick with it.
+* try to improve the field-parameterization of the interaction matrices, for example by using the approach from Maynard et al. 2019 [(aquí el link)](https://onlinelibrary.wiley.com/doi/abs/10.1111/ele.13256)
+
+
+
+
+
+
+

@@ -33,16 +33,13 @@ for(i.sp in 1:length(focal.sp)){
 # load models
 
 # Test all standard models in cxr
-<<<<<<< HEAD
-model_family <- c("LV")
-=======
+# model_family <- c("LV")
 # model_family <- c("BH","LW","RK")
 
 # try a High Density dependence (HD) model,
 # based on the ricker formulation
 model_family <- "HD"
 source("R/HD_pm_alpha_pairwise_lambdacov_none_alphacov_none.R")
->>>>>>> 4355279d30e67477a2a968de83466284d6a57b70
 
 optimization_method <- "bobyqa"
 alpha_form <- "pairwise"
