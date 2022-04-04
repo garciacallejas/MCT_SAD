@@ -25,6 +25,11 @@ SAD.metrics.df$steady.state.richness <- NA
 SAD.metrics.df$steady.state.abundance <- NA
 SAD.metrics.df$steady.state.evenness <- NA
 
+richness <- unique(gradient.df$richness)
+sp.names <- paste("sp",1:richness,sep="")
+
+SAD.list <- list()
+
 for(i in 1:nrow(SAD.metrics.df)){
     A <- matrix.list[[i]]
     r <- rep(1,gradient.df$richness[i])
@@ -42,6 +47,16 @@ for(i in 1:nrow(SAD.metrics.df)){
     steady.state.abundances <- subset(lv.dynamics, time == max(time))$density
     steady.state.abundances[steady.state.abundances < 1e-5] <- 0
     
+    my.abundances <- expand_grid(richness = SAD.metrics.df$richness[i],
+                                 connectance = SAD.metrics.df$connectance[i],
+                                 diagonal.dominance = SAD.metrics.df$diagonal.dominance[i],
+                                 tau = SAD.metrics.df$tau[i],
+                                 replicate = SAD.metrics.df$replicate[i],
+                                 matrix.code = SAD.metrics.df$matrix_code[i],
+                                 species = sp.names,
+                                 abundance = NA)
+    my.abundances$abundance <- steady.state.abundances
+    
     SAD.metrics.df$steady.state.richness[i] <- sum(steady.state.abundances>0)
     SAD.metrics.df$steady.state.abundance[i] <- round(sum(steady.state.abundances))
     # this equation returns evenness = 1 for single-species communities, so correct it
@@ -50,10 +65,14 @@ for(i in 1:nrow(SAD.metrics.df)){
                                                       hill.diversity(steady.state.abundances)/sum(steady.state.abundances>0),
                                                       NA_real_)
     
+    SAD.list[[i]] <- my.abundances
+    
 }
+
+SAD.abundances <- bind_rows(SAD.list)
 
 # -------------------------------------------------------------------------
 
 write.csv2(SAD.metrics.df,"results/SAD_metrics_silico.csv",row.names = FALSE)
-
+write.csv2(SAD.abundances, "results/SAD_abundances_silico.csv", row.names = FALSE)
 
