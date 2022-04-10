@@ -14,7 +14,7 @@ sad.metrics <- read.csv2("results/SAD_metrics_silico.csv")
 # -------------------------------------------------------------------------
 connectance.mean <- unique(sad.metrics$connectance)[5]
 diag.dom.mean <- unique(sad.metrics$diagonal.dominance)[5]
-tau.mean <- unique(sad.metrics$tau)[5]
+strength.mean <- unique(sad.metrics$mean.strength)[5]
 
 # metrics <- c("steady.state.richness","steady.state.evenness","steady.state.abundance")
 
@@ -22,9 +22,9 @@ tau.mean <- unique(sad.metrics$tau)[5]
 
 rank.abundances <- sad.abundances %>% 
     select(-matrix.code) %>%
-    group_by(connectance,diagonal.dominance,tau,replicate) %>% 
+    group_by(connectance,diagonal.dominance,mean.strength,replicate) %>% 
     mutate(relative.abund = abundance/sum(abundance)) %>%
-    group_by(connectance,diagonal.dominance,tau,replicate) %>% 
+    group_by(connectance,diagonal.dominance,mean.strength,replicate) %>% 
     mutate(species.rank = rank(-relative.abund,ties.method = "first"))
 
 # rank.abundances.long <- rank.abundances %>%
@@ -33,22 +33,22 @@ rank.abundances <- sad.abundances %>%
 # -------------------------------------------------------------------------
 plot.list <- list()
 
-for(i.metric in c("connectance","diagonal.dominance","tau")){
+for(i.metric in c("connectance","diagonal.dominance","mean.strength")){
     if(i.metric == "connectance"){
         my.metric <- subset(rank.abundances,
-                            tau == tau.mean &
+                            mean.strength == strength.mean &
                                 diagonal.dominance == diag.dom.mean)
         my.metric$metric <- as.factor(round(my.metric$connectance,2))
     }else if(i.metric == "diagonal.dominance"){
         my.metric <- subset(rank.abundances,
-                            tau == tau.mean &
+                            mean.strength == strength.mean &
                                 connectance == connectance.mean)
         my.metric$metric <- as.factor(round(my.metric$diagonal.dominance,2))
-    }else if(i.metric == "tau"){
+    }else if(i.metric == "mean.strength"){
         my.metric <- subset(rank.abundances,
                             connectance == connectance.mean &
                                 diagonal.dominance == diag.dom.mean)
-        my.metric$metric <- as.factor(round(my.metric$tau,2))
+        my.metric$metric <- as.factor(round(my.metric$mean.strength,2))
     }
     
     plot.list[[length(plot.list)+1]] <- ggplot(my.metric, aes(x = species.rank, 

@@ -13,7 +13,7 @@ sad.results <- subset(sad.results, steady.state.abundance < 1e3)
 
 # -------------------------------------------------------------------------
 
-factors <- c("connectance","diagonal.dominance","tau")
+factors <- c("connectance","diagonal.dominance","mean.strength")
 metrics <- c("steady.state.richness","steady.state.evenness","steady.state.abundance")
 
 plot.list <- list()
@@ -23,7 +23,8 @@ for(i.metric in 1:length(metrics)){
         my.data <- sad.results[,c(factors[i.factor],metrics[i.metric])]
         names(my.data) <- c("x","y")
         plot.list[[length(plot.list)+1]] <- ggplot(my.data,aes(x = x, y = y)) + 
-            geom_point() +
+            geom_jitter(width = .1, size = .5, alpha = .5) +
+            # geom_point() +
             # geom_smooth() +
             xlab(factors[i.factor]) + 
             ylab(metrics[i.metric]) +

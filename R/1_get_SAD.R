@@ -5,8 +5,6 @@ source("R/hill_diversity.R")
 
 # -------------------------------------------------------------------------
 
-# TODO transform tau to kurtosis? if biyective, yes
-
 # 1 - solve Lotka-Volterra systems associated to the matrices generated in silico
 # 2 - for those with > N surviving species, recover their SAD
 # 3 - store, for each system selected, their full SAD, 
@@ -50,7 +48,8 @@ for(i in 1:nrow(SAD.metrics.df)){
     my.abundances <- expand_grid(richness = SAD.metrics.df$richness[i],
                                  connectance = SAD.metrics.df$connectance[i],
                                  diagonal.dominance = SAD.metrics.df$diagonal.dominance[i],
-                                 tau = SAD.metrics.df$tau[i],
+                                 mean.strength = SAD.metrics.df$mean.strength[i],
+                                 # tau = SAD.metrics.df$tau[i],
                                  replicate = SAD.metrics.df$replicate[i],
                                  matrix.code = SAD.metrics.df$matrix_code[i],
                                  species = sp.names,
