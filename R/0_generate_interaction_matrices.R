@@ -28,6 +28,10 @@ diag.dom.gradient <- seq(from = 0, to = 1, length.out = 10)
 kurtosis.tau.gradient <- seq(from = 3, to = 1, length.out = 10)
 # species richness
 mean.strength.gradient <- seq(from = 0, to = 2, length.out = 10)
+
+# standard deviation of the interaction strenghts
+int.sd <- .2
+
 # -------------------------------------------------------------------------
 
 # this dataframe will hold information about each matrix
@@ -51,6 +55,7 @@ for(i in 1:nrow(gradient.df)){
                                                     # tau = gradient.df$tau[i],
                                                     min.diag.dom = gradient.df$diagonal.dominance[i],
                                                     int.mean = gradient.df$mean.strength[i],
+                                                    int.sd = int.sd,
                                                     restricted.positive = TRUE)
 }
 
